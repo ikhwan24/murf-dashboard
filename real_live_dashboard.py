@@ -237,9 +237,14 @@ class RealLiveAPIClient:
                 'last_trade_hash': last_trade_hash
             }
             self.price_db.save_price_data(price_data)
+            print(f"💾 Saved to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
             
             # Get chart data
             chart_data = self.price_db.get_chart_data(50)
+            print(f"📊 Chart Data: {len(chart_data.get('murf_prices', []))} points")
+            if chart_data.get('murf_prices'):
+                print(f"📈 Latest MURF Price in Chart: ${chart_data['murf_prices'][-1]:.8f}")
+                print(f"📈 First MURF Price in Chart: ${chart_data['murf_prices'][0]:.8f}")
             
             return {
                 "murf_total_supply": self.murf_total_supply,
