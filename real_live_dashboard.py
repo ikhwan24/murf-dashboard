@@ -262,20 +262,33 @@ class RealLiveAPIClient:
                     murf_fdv = self.murf_total_supply * murf_usd_price
                     murf_marketcap = self.murf_circulation * murf_usd_price
                     
-                    # Save REAL price data to database
-                    price_data = {
-                        'timestamp': datetime.now().isoformat(),
-                        'kta_price_usd': self.kta_price_usd,
-                        'murf_kta_price': murf_kta_price,
-                        'murf_usd_price': murf_usd_price,
-                        'exchange_rate_murf': exchange_rate_murf,
-                        'murf_fdv': murf_fdv,
-                        'murf_marketcap': murf_marketcap,
-                        'type_7_count': len(type_7_txs),
-                        'last_trade_hash': last_trade_hash
-                    }
-                    self.price_db.save_price_data(price_data)
-                    print(f"[SAVE] Saved REAL data to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
+                    # Check if this is a new OTC transaction (different from last saved)
+                    last_saved_data = self.price_db.get_latest_price_data()
+                    is_new_otc = True
+                    
+                    if last_saved_data:
+                        last_saved_hash = last_saved_data.get('last_trade_hash', '')
+                        if last_trade_hash == last_saved_hash:
+                            is_new_otc = False
+                            print(f"[INFO] Same OTC transaction as last saved - skipping chart update")
+                    
+                    # Only save to database if it's a new OTC transaction
+                    if is_new_otc:
+                        price_data = {
+                            'timestamp': datetime.now().isoformat(),
+                            'kta_price_usd': self.kta_price_usd,
+                            'murf_kta_price': murf_kta_price,
+                            'murf_usd_price': murf_usd_price,
+                            'exchange_rate_murf': exchange_rate_murf,
+                            'murf_fdv': murf_fdv,
+                            'murf_marketcap': murf_marketcap,
+                            'type_7_count': len(type_7_txs),
+                            'last_trade_hash': last_trade_hash
+                        }
+                        self.price_db.save_price_data(price_data)
+                        print(f"[SAVE] NEW OTC transaction - Saved to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
+                    else:
+                        print(f"[INFO] No new OTC transactions - Chart remains unchanged")
                 else:
                     print(f"[WARNING] Invalid REAL OTC data: kta_amount={kta_amount}, murf_amount={murf_amount}")
                     # Don't save invalid data
@@ -1678,18 +1691,25 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             }});
         }}
         
-        // Auto-refresh every 30 seconds
-        setInterval(function() {{
+        // Manual refresh button
+        function refreshData() {{
             // Show loading indicator
             const loadingDiv = document.createElement('div');
-            loadingDiv.innerHTML = '<div class="loading"></div> Refreshing data...';
+            loadingDiv.innerHTML = '<div class="loading"></div> Checking for new OTC transactions...';
             loadingDiv.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.8);color:white;padding:10px;border-radius:5px;z-index:9999;';
             document.body.appendChild(loadingDiv);
             
             setTimeout(() => {{
                 location.reload();
             }}, 1000);
-        }}, 30000);
+        }}
+        
+        // Add refresh button
+        const refreshButton = document.createElement('button');
+        refreshButton.innerHTML = '🔄 Check for New OTC';
+        refreshButton.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#00d4aa;color:white;border:none;padding:10px 15px;border-radius:5px;cursor:pointer;z-index:9999;font-weight:bold;';
+        refreshButton.onclick = refreshData;
+        document.body.appendChild(refreshButton);
     </script>
     
     <!-- Footer -->
@@ -1930,9 +1950,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
 def main():
     PORT = int(os.environ.get('PORT', 5000))
     
-    print("🚀 Starting Real Live MURF Token Dashboard... (VERSION 2.0 - FIXED)")
+    print("🚀 Starting Real Live MURF Token Dashboard... (VERSION 2.0 - OTC FOCUSED)")
     print(f"[DATA] Dashboard available at: http://localhost:{PORT}")
-    print("[REFRESH] Auto-refresh every 30 seconds")
+    print("[REFRESH] Manual refresh - Chart updates only when new OTC transactions found")
     print("📡 Fetching REAL data from Keeta API")
     print("[WARNING]  WARNING: Prices are estimates, not live trading prices")
     print("Press Ctrl+C to stop")
