@@ -693,14 +693,15 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .otc-header h3 {{
-            color: #00d4aa;
+            color: #ffffff;
             font-size: 18px;
             font-weight: bold;
             margin: 0 0 8px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }}
         
         .otc-header p {{
-            color: #888;
+            color: #cccccc;
             font-size: 14px;
             margin: 0;
         }}
@@ -741,21 +742,23 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             color: #00d4aa;
             font-weight: bold;
             font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }}
         
         .otc-arrow {{
-            color: #888;
+            color: #cccccc;
             font-size: 12px;
         }}
         
         .otc-murf {{
-            color: #ffffff;
+            color: #ff6b6b;
             font-weight: bold;
             font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }}
         
         .otc-time {{
-            color: #888;
+            color: #cccccc;
             font-size: 12px;
             font-weight: 500;
         }}
@@ -770,6 +773,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         .otc-rate {{
             color: #00d4aa;
             font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }}
         
         .otc-addresses {{
@@ -778,16 +782,16 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .otc-from {{
-            color: #888;
+            color: #cccccc;
         }}
         
         .otc-to {{
-            color: #888;
+            color: #cccccc;
         }}
         
         .no-otc {{
             text-align: center;
-            color: #888;
+            color: #cccccc;
             font-style: italic;
             padding: 20px;
         }}
