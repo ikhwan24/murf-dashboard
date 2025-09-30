@@ -34,7 +34,7 @@ class OTCTransactionsDB:
         
         conn.commit()
         conn.close()
-        print("✅ OTC Transactions database initialized")
+        print("OTC Transactions database initialized")
     
     def save_otc_transaction(self, tx_data):
         """Save OTC transaction to database"""
@@ -83,10 +83,10 @@ class OTCTransactionsDB:
                 transaction = dict(zip(columns, row))
                 transactions.append(transaction)
             
-            print(f"📊 Retrieved {len(transactions)} OTC transactions from database")
+            print(f"Retrieved {len(transactions)} OTC transactions from database")
             return transactions
         except Exception as e:
-            print(f"❌ Error retrieving OTC transactions: {e}")
+            print(f"Error retrieving OTC transactions: {e}")
             return []
         finally:
             conn.close()
@@ -101,7 +101,7 @@ class OTCTransactionsDB:
             count = cursor.fetchone()[0]
             return count
         except Exception as e:
-            print(f"❌ Error getting OTC transaction count: {e}")
+            print(f"Error getting OTC transaction count: {e}")
             return 0
         finally:
             conn.close()

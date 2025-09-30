@@ -45,15 +45,15 @@ class RealLiveAPIClient:
                 
                 if 'keeta' in data and 'usd' in data['keeta']:
                     price = data['keeta']['usd']
-                    print(f"✅ KTA Price from CoinGecko: ${price}")
+                    print(f"KTA Price from CoinGecko: ${price}")
                     return price
                 else:
-                    print("❌ KTA not found in CoinGecko, using fallback price")
+                    print("KTA not found in CoinGecko, using fallback price")
                     return 0.658
                     
         except Exception as e:
-            print(f"❌ Error fetching KTA price from CoinGecko: {e}")
-            print("🔄 Using fallback price: $0.658")
+            print(f"Error fetching KTA price from CoinGecko: {e}")
+            print("Using fallback price: $0.658")
             return 0.658
     
     def hex_to_decimal(self, hex_string):
@@ -94,7 +94,7 @@ class RealLiveAPIClient:
         kta_token = "keeta_anqdilpazdekdu4acw65fj7smltcp26wbrildkqtszqvverljpwpezmd44ssg"
         murf_token = "keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm"
         
-        print(f"🔍 Analyzing {len(data['history'])} history entries for OTC transactions...")
+        print(f"Analyzing {len(data['history'])} history entries for OTC transactions...")
         
         for entry in data['history']:
             if 'voteStaple' in entry and 'blocks' in entry['voteStaple']:
@@ -116,7 +116,7 @@ class RealLiveAPIClient:
                                 from_addr = op.get('from', 'N/A')
                                 exact = op.get('exact', False)
                                 
-                                print(f"✅ Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
+                                print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
                                 
                                 # Cari related Type 0 MURF dalam block yang sama atau block sebelumnya
                                 murf_amount = 0
@@ -129,7 +129,7 @@ class RealLiveAPIClient:
                                         murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
                                         murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
                                         to_addr = related_op.get('to', 'N/A')
-                                        print(f"   ✅ Found Type 0 MURF: {murf_amount:.0f} MURF")
+                                        print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
                                         break
                                 
                                 # Jika tidak ada dalam block yang sama, cari di block sebelumnya
@@ -175,7 +175,7 @@ class RealLiveAPIClient:
                                 'block_hashes': vote['blocks'][:3]  # First 3 blocks
                             })
         
-        print(f"📊 Found {len(otc_transactions)} OTC transactions")
+        print(f"[DATA] Found {len(otc_transactions)} OTC transactions")
         
         return {
             'total_blocks': total_blocks,
@@ -195,12 +195,12 @@ class RealLiveAPIClient:
                 keeta_data = self.fetch_keeta_data()
                 if keeta_data:
                     analysis = self.analyze_keeta_data(keeta_data)
-                    print("✅ API data fetched successfully")
+                    print("[OK] API data fetched successfully")
                 else:
-                    print("⚠️ API data fetch failed, using database fallback")
+                    print("[WARNING] API data fetch failed, using database fallback")
             except Exception as api_error:
-                print(f"❌ API Error: {api_error}")
-                print("📊 Using database fallback for data")
+                print(f"[ERROR] API Error: {api_error}")
+                print("[DATA] Using database fallback for data")
             
             # Initialize variables
             type_7_txs = []
@@ -214,17 +214,17 @@ class RealLiveAPIClient:
                     latest_tx = type_7_txs[0]
                     last_trade_hash = latest_tx['tx_hash']
                     last_trade_time = latest_tx['timestamp']
-                    print(f"🔗 Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
+                    print(f"[LINK] Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
             
             # Always get from database for comprehensive data
             db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
-            print(f"📊 Database OTC transactions: {len(db_otc_transactions)}")
+            print(f"[DATA] Database OTC transactions: {len(db_otc_transactions)}")
             
             # Debug: Tampilkan data dari database
             if db_otc_transactions:
-                print(f"🔍 Database OTC sample: {db_otc_transactions[0]}")
+                print(f"[DEBUG] Database OTC sample: {db_otc_transactions[0]}")
             else:
-                print("⚠️  No OTC transactions found in database")
+                print("[WARNING]  No OTC transactions found in database")
             
             # Use database data if no API data available
             if not type_7_txs and db_otc_transactions:
@@ -232,7 +232,7 @@ class RealLiveAPIClient:
                 latest_tx = db_otc_transactions[0]
                 last_trade_hash = latest_tx['tx_hash']
                 last_trade_time = latest_tx['timestamp']
-                print(f"📊 Using database OTC data: {last_trade_hash[:20]}... at {last_trade_time}")
+                print(f"[DATA] Using database OTC data: {last_trade_hash[:20]}... at {last_trade_time}")
                 # Use database data as type_7_txs for display
                 type_7_txs = db_otc_transactions
             
@@ -247,22 +247,22 @@ class RealLiveAPIClient:
                 murf_amount = latest_trade.get('murf_amount', 0)
                 kta_amount = latest_trade.get('kta_amount', 0)
                 
-                print(f"🔍 DEBUG: kta_amount={kta_amount}, murf_amount={murf_amount}")
+                print(f"[DEBUG] DEBUG: kta_amount={kta_amount}, murf_amount={murf_amount}")
                 if kta_amount > 0 and murf_amount > 0:
                     murf_kta_price = kta_amount / murf_amount  # KTA per MURF
                     exchange_rate_murf = murf_amount / kta_amount  # MURF per KTA
-                    print(f"📊 Real Exchange Rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                    print(f"[DATA] Real Exchange Rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
                 else:
                     # Ambil dari database terakhir jika ada
                     last_price_data = self.price_db.get_latest_price_data()
                     if last_price_data and last_price_data.get('exchange_rate_murf', 0) > 0:
                         murf_kta_price = last_price_data.get('murf_kta_price', 0.000004)
                         exchange_rate_murf = last_price_data.get('exchange_rate_murf', 250000.0)
-                        print(f"📊 Using last known rate: 1 KTA = {exchange_rate_murf:,.0f} MURF (from DB)")
+                        print(f"[DATA] Using last known rate: 1 KTA = {exchange_rate_murf:,.0f} MURF (from DB)")
                     else:
                         murf_kta_price = 0.000004  # Default fallback
                         exchange_rate_murf = 250000.0  # Default fallback
-                        print(f"📊 Using default rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                        print(f"[DATA] Using default rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
             else:
                 murf_kta_price = 0.000004  # Default fallback
                 exchange_rate_murf = 250000.0  # Default fallback
@@ -284,11 +284,11 @@ class RealLiveAPIClient:
                 'last_trade_hash': last_trade_hash
             }
             self.price_db.save_price_data(price_data)
-            print(f"💾 Saved to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
+            print(f"[SAVE] Saved to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
             
             # Get chart data
             chart_data = self.price_db.get_chart_data(50)
-            print(f"📊 Chart Data: {len(chart_data.get('murf_prices', []))} points")
+            print(f"[DATA] Chart Data: {len(chart_data.get('murf_prices', []))} points")
             if chart_data.get('murf_prices'):
                 print(f"📈 Latest MURF Price in Chart: ${chart_data['murf_prices'][-1]:.8f}")
                 print(f"📈 First MURF Price in Chart: ${chart_data['murf_prices'][0]:.8f}")
@@ -299,7 +299,7 @@ class RealLiveAPIClient:
                 chart_data['murf_prices'][-1] = murf_usd_price
                 chart_data['kta_prices'][-1] = self.kta_price_usd
                 chart_data['market_caps'][-1] = murf_marketcap
-                print(f"🔄 Updated Chart: Latest MURF Price = ${murf_usd_price:.8f}")
+                print(f"[REFRESH] Updated Chart: Latest MURF Price = ${murf_usd_price:.8f}")
             
             return {
                 "murf_total_supply": self.murf_total_supply,
@@ -319,7 +319,7 @@ class RealLiveAPIClient:
                 "type_7_murf_txs": type_7_txs + db_otc_transactions,
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
-                "api_status": "✅ Connected" if keeta_data else "❌ Disconnected"
+                "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected"
             }
         except Exception as e:
             print(f"Error getting stats: {e}")
@@ -340,7 +340,7 @@ class RealLiveAPIClient:
             "recent_activity": [],
             "last_update": datetime.now().isoformat(),
             "data_source": "Default Values",
-            "api_status": "❌ No Data"
+            "api_status": "[ERROR] No Data"
         }
 
 class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
@@ -1301,7 +1301,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         </div>
         
         <div class="warning-box">
-            <strong>✅ Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
+            <strong>[OK] Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
             MURF price is calculated based on the live KTA price and OTC exchange rate. 
             Blockchain data is real-time from Keeta Network API.
             
@@ -1328,7 +1328,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         <!-- Latest OTC Transactions -->
         <div class="latest-otc-section">
             <div class="otc-header">
-                <h3>🔄 Latest OTC Transactions</h3>
+                <h3>[REFRESH] Latest OTC Transactions</h3>
                 <p>Recent MURF/KTA OTC trades from Keeta Network</p>
             </div>
             <div class="otc-transactions">
@@ -1346,7 +1346,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                     <span class="ca-value">keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm</span>
                     <button class="copy-btn" onclick="copyCA()">📋 Copy</button>
                 </div>
-                <div class="ca-warning">⚠️ Always verify the contract address before trading to avoid scams!</div>
+                <div class="ca-warning">[WARNING] Always verify the contract address before trading to avoid scams!</div>
             </div>
         </div>
         
@@ -1600,7 +1600,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             `;
             message.innerHTML = `
                 <div>
-                    <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                    <div style="font-size: 24px; margin-bottom: 8px;">[DATA]</div>
                     <div>` + timeframe.toUpperCase() + ` data not available yet</div>
                     <div style="font-size: 12px; margin-top: 4px; color: #666;">
                         Database is collecting historical data...
@@ -1658,7 +1658,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 // Show success message
                 const copyBtn = document.querySelector('.copy-btn');
                 const originalText = copyBtn.textContent;
-                copyBtn.textContent = '✅ Copied!';
+                copyBtn.textContent = '[OK] Copied!';
                 copyBtn.style.background = '#00b894';
                 
                 setTimeout(function() {{
@@ -1690,7 +1690,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         <div class="footer-content">
             <p>🚀 MURF Token Dashboard - Real-time OTC Trading Analytics</p>
             <div class="footer-credit">
-                Made with ❤️ by <a href="https://x.com/BigKingXBT" target="_blank">@BigKingXBT</a>
+                Made with [LOVE] by <a href="https://x.com/BigKingXBT" target="_blank">@BigKingXBT</a>
             </div>
         </div>
     </footer>
@@ -1744,12 +1744,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                     <a href="{explorer_link}" 
                        target="_blank" 
                        style="color: #007bff; text-decoration: none; font-size: 12px; margin-right: 15px;">
-                        🔗 View Block
+                        [LINK] View Block
                     </a>
                     <a href="https://rep2.main.network.api.keeta.com/api/node/ledger/history?limit=10" 
                        target="_blank" 
                        style="color: #28a745; text-decoration: none; font-size: 12px; margin-right: 15px;">
-                        📊 API Explorer
+                        [DATA] API Explorer
                     </a>
                     <span style="font-size: 10px; color: #666; font-family: monospace;">
                         Hash: {hash_display}
@@ -1808,12 +1808,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                     <a href="{explorer_link}" 
                        target="_blank" 
                        style="color: #007bff; text-decoration: none; font-size: 12px; margin-right: 15px;">
-                        🔗 View Block
+                        [LINK] View Block
                     </a>
                     <a href="https://rep2.main.network.api.keeta.com/api/node/ledger/history?limit=100" 
                        target="_blank" 
                        style="color: #28a745; text-decoration: none; font-size: 12px; margin-right: 15px;">
-                        📊 API Explorer
+                        [DATA] API Explorer
                     </a>
                     <span style="font-size: 10px; color: #666; font-family: monospace;">
                         Hash: {hash_display}
@@ -1829,9 +1829,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             return '<div class="no-otc">No recent OTC transactions found</div>'
         
         html = '<div class="otc-list">'
-        print(f"🔍 DEBUG: Rendering {len(trades)} OTC trades")
+        print(f"[DEBUG] DEBUG: Rendering {len(trades)} OTC trades")
         for i, trade in enumerate(trades):
-            print(f"🔍 Trade {i+1}: {trade}")
+            print(f"[DEBUG] Trade {i+1}: {trade}")
             kta_amount = trade.get('kta_amount', 0)
             murf_amount = trade.get('murf_amount', 0)
             from_addr = trade.get('from_address', 'N/A')
@@ -1877,9 +1877,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             tx_hash = trade.get('tx_hash', 'N/A')
             explorer_link = ""
             if tx_hash != 'N/A' and len(tx_hash) == 64:
-                explorer_link = f'<a href="https://explorer.keeta.com/block/{tx_hash}" target="_blank" class="otc-explorer-link">🔗 View Block</a>'
+                explorer_link = f'<a href="https://explorer.keeta.com/block/{tx_hash}" target="_blank" class="otc-explorer-link">[LINK] View Block</a>'
             else:
-                explorer_link = '<span class="otc-explorer-link">🔗 Invalid Hash</span>'
+                explorer_link = '<span class="otc-explorer-link">[LINK] Invalid Hash</span>'
             
             html += f'''
             <div class="otc-item">
@@ -1924,14 +1924,14 @@ def main():
     PORT = int(os.environ.get('PORT', 5000))
     
     print("🚀 Starting Real Live MURF Token Dashboard... (VERSION 2.0 - FIXED)")
-    print(f"📊 Dashboard available at: http://localhost:{PORT}")
-    print("🔄 Auto-refresh every 30 seconds")
+    print(f"[DATA] Dashboard available at: http://localhost:{PORT}")
+    print("[REFRESH] Auto-refresh every 30 seconds")
     print("📡 Fetching REAL data from Keeta API")
-    print("⚠️  WARNING: Prices are estimates, not live trading prices")
+    print("[WARNING]  WARNING: Prices are estimates, not live trading prices")
     print("Press Ctrl+C to stop")
     
     with socketserver.TCPServer(("0.0.0.0", PORT), RealLiveDashboardHandler) as httpd:
-        print(f"✅ Server running on port {PORT}")
+        print(f"[OK] Server running on port {PORT}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
