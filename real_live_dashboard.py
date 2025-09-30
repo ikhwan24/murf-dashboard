@@ -200,6 +200,7 @@ class RealLiveAPIClient:
                 murf_amount = latest_trade.get('amount', 0)
                 kta_amount = latest_trade.get('kta_amount', 0)
                 
+                print(f"🔍 DEBUG: kta_amount={kta_amount}, murf_amount={murf_amount}")
                 if kta_amount > 0 and murf_amount > 0:
                     murf_kta_price = kta_amount / murf_amount  # KTA per MURF
                     exchange_rate_murf = murf_amount / kta_amount  # MURF per KTA
