@@ -216,13 +216,18 @@ class RealLiveAPIClient:
                     last_trade_time = latest_tx['timestamp']
                     print(f"[LINK] Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
             
-            # Only use API data, not database
-            print(f"[DEBUG] Using only API data, not database")
-            print(f"[DEBUG] API OTC transactions found: {len(type_7_txs)}")
+            # Get from database for comprehensive data
+            db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
+            print(f"[DATA] Database OTC transactions: {len(db_otc_transactions)}")
             
-            if not type_7_txs:
-                print("[WARNING] No OTC transactions found in API data")
-                # Don't use database data - only show API data
+            # Use database data if no API data available
+            if not type_7_txs and db_otc_transactions:
+                print(f"[DATA] Using database OTC data: {len(db_otc_transactions)} transactions")
+                type_7_txs = db_otc_transactions
+            elif type_7_txs:
+                print(f"[DEBUG] Using API OTC data: {len(type_7_txs)} transactions")
+            else:
+                print("[WARNING] No OTC transactions found in API or database")
             
             # Calculate MURF price based on real OTC trades from API only
             latest_trade = None
