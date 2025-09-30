@@ -65,8 +65,8 @@ class RealLiveAPIClient:
         except:
             return 0
     
-    def fetch_keeta_data(self, limit=1000):
-        """Fetch data from Keeta API with increased limit for more comprehensive data"""
+    def fetch_keeta_data(self, limit=200):
+        """Fetch data from Keeta API (API max limit is 200 entries)"""
         try:
             url = f"{self.keeta_api_url}?limit={limit}"
             with urllib.request.urlopen(url, timeout=10) as response:
@@ -818,6 +818,23 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             color: #cccccc;
         }}
         
+        .otc-links {{
+            margin-top: 8px;
+        }}
+        
+        .otc-explorer-link {{
+            color: #00d4aa;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }}
+        
+        .otc-explorer-link:hover {{
+            color: #00b894;
+            text-decoration: underline;
+        }}
+        
         .no-otc {{
             text-align: center;
             color: #cccccc;
@@ -1383,10 +1400,6 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             <div class="donation-address">keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay</div>
         </div>
         
-        <div class="activity-section">
-            <div class="activity-title">📊 Recent MURF Trades (Type 7 OTC)</div>
-            {self._render_murf_trades(stats.get('type_7_murf_txs', []))}
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1771,15 +1784,36 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             # Calculate exchange rate
             rate_text = f"1 KTA = {exchange_rate:,.0f} MURF" if exchange_rate > 0 else "Rate: N/A"
             
-            # Format date
+            # Format date with relative time
             try:
-                from datetime import datetime
+                from datetime import datetime, timezone
                 dt = datetime.fromisoformat(date.replace('Z', '+00:00'))
-                time_str = dt.strftime('%H:%M')
-                date_str = dt.strftime('%m/%d')
+                now = datetime.now(timezone.utc)
+                time_diff = now - dt
+                
+                # Calculate relative time
+                if time_diff.days > 0:
+                    relative_time = f"{time_diff.days}d ago"
+                elif time_diff.seconds > 3600:
+                    hours = time_diff.seconds // 3600
+                    relative_time = f"{hours}h ago"
+                elif time_diff.seconds > 60:
+                    minutes = time_diff.seconds // 60
+                    relative_time = f"{minutes}m ago"
+                else:
+                    relative_time = "Just now"
+                
+                time_str = f"{relative_time} ({dt.strftime('%H:%M')})"
             except:
                 time_str = date.split('T')[1][:5] if 'T' in date else date
-                date_str = date.split('T')[0] if 'T' in date else date
+            
+            # Get transaction hash for block explorer link
+            tx_hash = trade.get('tx_hash', 'N/A')
+            explorer_link = ""
+            if tx_hash != 'N/A' and len(tx_hash) == 64:
+                explorer_link = f'<a href="https://explorer.keeta.com/block/{tx_hash}" target="_blank" class="otc-explorer-link">🔗 View Block</a>'
+            else:
+                explorer_link = '<span class="otc-explorer-link">🔗 Invalid Hash</span>'
             
             html += f'''
             <div class="otc-item">
@@ -1796,6 +1830,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                     <div class="otc-addresses">
                         <span class="otc-from">{from_short}</span>
                         <span class="otc-to">{to_short}</span>
+                    </div>
+                    <div class="otc-links">
+                        {explorer_link}
                     </div>
                 </div>
             </div>
