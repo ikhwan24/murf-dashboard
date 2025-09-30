@@ -389,7 +389,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-size: 3rem;
             font-weight: 700;
             margin: 0 0 16px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #ffffff;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.6);
             animation: fadeInUp 0.8s ease-out;
         }}
         
@@ -1114,6 +1115,38 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-weight: 600;
         }}
         
+        /* Footer */
+        .footer {{
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-top: 1px solid #333;
+            margin-top: 40px;
+        }}
+        
+        .footer-content {{
+            color: #888;
+            font-size: 14px;
+            line-height: 1.6;
+        }}
+        
+        .footer-credit {{
+            margin-top: 10px;
+            color: #00d4aa;
+            font-weight: 600;
+        }}
+        
+        .footer-credit a {{
+            color: #00d4aa;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }}
+        
+        .footer-credit a:hover {{
+            color: #00b894;
+            text-decoration: underline;
+        }}
+        
         .price-info {{
             display: flex;
             justify-content: space-between;
@@ -1630,6 +1663,16 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             }}, 1000);
         }}, 30000);
     </script>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>🚀 MURF Token Dashboard - Real-time OTC Trading Analytics</p>
+            <div class="footer-credit">
+                Made with ❤️ by <a href="https://x.com/BigKingXBT" target="_blank">@BigKingXBT</a>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
         """
