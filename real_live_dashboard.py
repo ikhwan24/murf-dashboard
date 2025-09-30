@@ -205,8 +205,16 @@ class RealLiveAPIClient:
                     exchange_rate_murf = murf_amount / kta_amount  # MURF per KTA
                     print(f"📊 Real Exchange Rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
                 else:
-                    murf_kta_price = 0.000004  # Default fallback
-                    exchange_rate_murf = 250000.0  # Default fallback
+                    # Ambil dari database terakhir jika ada
+                    last_price_data = self.price_db.get_latest_price_data()
+                    if last_price_data and last_price_data.get('exchange_rate_murf', 0) > 0:
+                        murf_kta_price = last_price_data.get('murf_kta_price', 0.000004)
+                        exchange_rate_murf = last_price_data.get('exchange_rate_murf', 250000.0)
+                        print(f"📊 Using last known rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                    else:
+                        murf_kta_price = 0.000004  # Default fallback
+                        exchange_rate_murf = 250000.0  # Default fallback
+                        print(f"📊 Using default rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
             else:
                 murf_kta_price = 0.000004  # Default fallback
                 exchange_rate_murf = 250000.0  # Default fallback

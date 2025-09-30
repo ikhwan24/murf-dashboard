@@ -144,6 +144,36 @@ class PriceHistoryDB:
         conn.close()
         
         return deleted_count
+    
+    def get_latest_price_data(self):
+        """Get the latest price data from database"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT timestamp, kta_price_usd, murf_kta_price, murf_usd_price,
+                   exchange_rate_murf, murf_fdv, murf_marketcap, type_7_count, last_trade_hash
+            FROM price_history 
+            ORDER BY timestamp DESC 
+            LIMIT 1
+        ''')
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if result:
+            return {
+                'timestamp': result[0],
+                'kta_price_usd': result[1],
+                'murf_kta_price': result[2],
+                'murf_usd_price': result[3],
+                'exchange_rate_murf': result[4],
+                'murf_fdv': result[5],
+                'murf_marketcap': result[6],
+                'type_7_count': result[7],
+                'last_trade_hash': result[8]
+            }
+        return None
 
 if __name__ == "__main__":
     # Test the database
