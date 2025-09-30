@@ -1076,13 +1076,55 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }});
         
         // Timeframe selector functionality
+        // Timeframe switching functionality
         document.querySelectorAll('.timeframe-btn').forEach(btn => {{
             btn.addEventListener('click', function() {{
                 document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                // Here you could implement timeframe switching logic
+                
+                const timeframe = this.getAttribute('data-timeframe');
+                updateChartTimeframe(timeframe);
             }});
         }});
+        
+        function updateChartTimeframe(timeframe) {{
+            // For now, show message that data is not available
+            // In future, this would fetch different data from server
+            console.log('Switching to timeframe:', timeframe);
+            
+            // Show message to user
+            const chartContainer = document.querySelector('.chart-container');
+            const message = document.createElement('div');
+            message.style.cssText = `
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 300px;
+                color: #888;
+                font-size: 14px;
+                text-align: center;
+            `;
+            message.innerHTML = `
+                <div>
+                    <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
+                    <div>${timeframe.toUpperCase()} data not available yet</div>
+                    <div style="font-size: 12px; margin-top: 4px; color: #666;">
+                        Database is collecting historical data...
+                    </div>
+                </div>
+            `;
+            
+            // Hide chart and show message
+            const canvas = document.getElementById('priceChart');
+            canvas.style.display = 'none';
+            chartContainer.appendChild(message);
+            
+            // Remove message after 3 seconds and show chart again
+            setTimeout(() => {{
+                chartContainer.removeChild(message);
+                canvas.style.display = 'block';
+            }}, 3000);
+        }}
         
         // MURF Converter functionality
         const murfInput = document.getElementById('murfAmount');
