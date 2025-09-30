@@ -290,8 +290,8 @@ class RealLiveAPIClient:
             chart_data = self.price_db.get_chart_data(50)
             print(f"[DATA] Chart Data: {len(chart_data.get('murf_prices', []))} points")
             if chart_data.get('murf_prices'):
-                print(f"📈 Latest MURF Price in Chart: ${chart_data['murf_prices'][-1]:.8f}")
-                print(f"📈 First MURF Price in Chart: ${chart_data['murf_prices'][0]:.8f}")
+                print(f"[CHART] Latest MURF Price in Chart: ${chart_data['murf_prices'][-1]:.8f}")
+                print(f"[CHART] First MURF Price in Chart: ${chart_data['murf_prices'][0]:.8f}")
                 
             # Force update chart data with current data
             if chart_data.get('murf_prices'):
@@ -1308,7 +1308,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             <!-- Compact Price Chart inside warning box -->
             <div class="compact-chart">
                 <div class="chart-header">
-                    <div class="chart-title">📈 MURF Price: ${stats.get('murf_usd_price', 0):.8f} (+2.45%)</div>
+                    <div class="chart-title">[CHART] MURF Price: ${stats.get('murf_usd_price', 0):.8f} (+2.45%)</div>
                     <div class="chart-controls">
                         <div class="timeframe-selector">
                             <button class="timeframe-btn active" data-timeframe="1h">1H</button>
