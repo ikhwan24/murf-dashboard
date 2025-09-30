@@ -13,6 +13,7 @@ from datetime import datetime
 import threading
 import time
 from price_history_db import PriceHistoryDB
+from otc_transactions_db import OTCTransactionsDB
 
 class RealLiveAPIClient:
     def __init__(self):
@@ -20,6 +21,7 @@ class RealLiveAPIClient:
         self.murf_token = "keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm"
         self.kta_token = "keeta_anqdilpazdekdu4acw65fj7smltcp26wbrildkqtszqvverljpwpezmd44ssg"
         self.price_db = PriceHistoryDB()
+        self.otc_db = OTCTransactionsDB()
         
         # Try to get real KTA price from external sources
         self.kta_price_usd = self.get_real_kta_price()
@@ -63,8 +65,8 @@ class RealLiveAPIClient:
         except:
             return 0
     
-    def fetch_keeta_data(self, limit=100):
-        """Fetch data from Keeta API"""
+    def fetch_keeta_data(self, limit=1000):
+        """Fetch data from Keeta API with increased limit for more comprehensive data"""
         try:
             url = f"{self.keeta_api_url}?limit={limit}"
             with urllib.request.urlopen(url, timeout=10) as response:
@@ -143,16 +145,23 @@ class RealLiveAPIClient:
                                 
                                 print(f"   MURF found: {murf_amount:.2f} MURF")
                                 
-                                otc_transactions.append({
+                                # Simpan OTC transaction ke database
+                                otc_tx_data = {
                                     'tx_hash': block.get('$hash', 'N/A'),
+                                    'block_hash': block.get('$hash', 'N/A'),
                                     'kta_amount': kta_amount,
                                     'murf_amount': murf_amount,
                                     'from_address': from_addr,
                                     'to_address': to_addr,
-                                    'date': block.get('date', 'N/A'),
-                                    'exact': exact,
+                                    'timestamp': block.get('date', 'N/A'),
                                     'exchange_rate': murf_amount/kta_amount if kta_amount > 0 else 0
-                                })
+                                }
+                                
+                                # Simpan ke database
+                                self.otc_db.save_otc_transaction(otc_tx_data)
+                                
+                                # Tambahkan ke list
+                                otc_transactions.append(otc_tx_data)
                 
                 # Juga simpan activity untuk display
                 if 'votes' in entry['voteStaple']:
@@ -186,17 +195,37 @@ class RealLiveAPIClient:
             last_trade_hash = "N/A"
             last_trade_time = "N/A"
             
+            # Juga ambil dari database untuk data yang lebih komprehensif
+            db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
+            print(f"📊 Database OTC transactions: {len(db_otc_transactions)}")
+            
+            # Debug: Tampilkan data dari database
+            if db_otc_transactions:
+                print(f"🔍 Database OTC sample: {db_otc_transactions[0]}")
+            else:
+                print("⚠️  No OTC transactions found in database")
+            
             if type_7_txs:
                 # Ambil transaksi terbaru
                 latest_tx = type_7_txs[0]  # Diasumsikan sudah diurutkan dari terbaru
                 last_trade_hash = latest_tx['tx_hash']
-                last_trade_time = latest_tx['date']
+                last_trade_time = latest_tx['timestamp']
                 print(f"🔗 Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
+            elif db_otc_transactions:
+                # Gunakan data dari database jika tidak ada data baru
+                latest_tx = db_otc_transactions[0]
+                last_trade_hash = latest_tx['tx_hash']
+                last_trade_time = latest_tx['timestamp']
+                print(f"📊 Using database OTC data: {last_trade_hash[:20]}... at {last_trade_time}")
             
             # Calculate MURF price based on real OTC trades
+            latest_trade = None
             if type_7_txs:
-                # Use the latest OTC trade for pricing
                 latest_trade = type_7_txs[0]
+            elif db_otc_transactions:
+                latest_trade = db_otc_transactions[0]
+            
+            if latest_trade:
                 murf_amount = latest_trade.get('murf_amount', 0)
                 kta_amount = latest_trade.get('kta_amount', 0)
                 
@@ -269,7 +298,7 @@ class RealLiveAPIClient:
                 "last_trade_hash": last_trade_hash,
                 "last_trade_time": last_trade_time,
                 "type_7_count": len(type_7_txs),
-                "type_7_murf_txs": type_7_txs,
+                "type_7_murf_txs": type_7_txs + db_otc_transactions,
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
                 "api_status": "✅ Connected" if keeta_data else "❌ Disconnected"
