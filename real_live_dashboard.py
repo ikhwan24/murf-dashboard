@@ -210,7 +210,7 @@ class RealLiveAPIClient:
                     if last_price_data and last_price_data.get('exchange_rate_murf', 0) > 0:
                         murf_kta_price = last_price_data.get('murf_kta_price', 0.000004)
                         exchange_rate_murf = last_price_data.get('exchange_rate_murf', 250000.0)
-                        print(f"📊 Using last known rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                        print(f"📊 Using last known rate: 1 KTA = {exchange_rate_murf:,.0f} MURF (from DB)")
                     else:
                         murf_kta_price = 0.000004  # Default fallback
                         exchange_rate_murf = 250000.0  # Default fallback
