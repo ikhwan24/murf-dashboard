@@ -145,23 +145,27 @@ class RealLiveAPIClient:
                                 
                                 print(f"   MURF found: {murf_amount:.2f} MURF")
                                 
-                                # Simpan OTC transaction ke database
+                                # Simpan OTC transaction ke database dengan pola yang benar
+                                # Pengirim: from_addr (dari Type 7 KTA)
+                                # Penerima: account field (dari block header)
+                                account_addr = block.get('account', to_addr)  # Fallback ke to_addr jika tidak ada account
+                                
                                 otc_tx_data = {
                                     'tx_hash': block.get('$hash', 'N/A'),
                                     'block_hash': block.get('$hash', 'N/A'),
                                     'kta_amount': kta_amount,
                                     'murf_amount': murf_amount,
-                                    'from_address': from_addr,
-                                    'to_address': to_addr,
+                                    'from_address': from_addr,  # Pengirim dari Type 7
+                                    'to_address': account_addr,  # Penerima dari account field
                                     'timestamp': block.get('date', 'N/A'),
                                     'exchange_rate': murf_amount/kta_amount if kta_amount > 0 else 0
                                 }
                                 
-                                # Debug: Check if addresses are the same
-                                if from_addr == to_addr:
-                                    print(f"   [INFO] Same address OTC: {from_addr[:20]}... (self-trade or internal transfer)")
-                                else:
-                                    print(f"   [INFO] Different addresses OTC: {from_addr[:20]}... -> {to_addr[:20]}...")
+                                # Debug: Show correct sender/receiver pattern
+                                print(f"   [INFO] OTC Pattern:")
+                                print(f"     Sender (Type 7): {from_addr[:20]}...")
+                                print(f"     Receiver (Account): {account_addr[:20]}...")
+                                print(f"     Different: {from_addr != account_addr}")
                                 
                                 # Simpan ke database
                                 self.otc_db.save_otc_transaction(otc_tx_data)
