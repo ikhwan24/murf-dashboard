@@ -65,7 +65,7 @@ class RealLiveAPIClient:
         except:
             return 0
     
-    def fetch_keeta_data(self, limit=200):
+    def fetch_keeta_data(self, limit=100):
         """Fetch data from Keeta API (API max limit is 200 entries)"""
         try:
             url = f"{self.keeta_api_url}?limit={limit}"
