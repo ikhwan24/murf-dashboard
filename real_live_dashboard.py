@@ -197,7 +197,7 @@ class RealLiveAPIClient:
             if type_7_txs:
                 # Use the latest OTC trade for pricing
                 latest_trade = type_7_txs[0]
-                murf_amount = latest_trade.get('amount', 0)
+                murf_amount = latest_trade.get('murf_amount', 0)
                 kta_amount = latest_trade.get('kta_amount', 0)
                 
                 print(f"🔍 DEBUG: kta_amount={kta_amount}, murf_amount={murf_amount}")
