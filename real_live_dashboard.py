@@ -1103,7 +1103,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
 def main():
     PORT = int(os.environ.get('PORT', 5000))
     
-    print("🚀 Starting Real Live MURF Token Dashboard... (DEBUG VERSION)")
+    print("🚀 Starting Real Live MURF Token Dashboard... (VERSION 2.0 - FIXED)")
     print(f"📊 Dashboard available at: http://localhost:{PORT}")
     print("🔄 Auto-refresh every 30 seconds")
     print("📡 Fetching REAL data from Keeta API")
