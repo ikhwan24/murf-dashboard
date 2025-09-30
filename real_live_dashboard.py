@@ -229,56 +229,59 @@ class RealLiveAPIClient:
             else:
                 print("[WARNING] No OTC transactions found in API or database")
             
-            # Calculate MURF price based on real OTC trades from API only
+            # Calculate MURF price based on REAL OTC trades from API only
             latest_trade = None
             if type_7_txs:
                 latest_trade = type_7_txs[0]
-                print(f"[DEBUG] Using API OTC data for pricing")
+                print(f"[DEBUG] Using REAL API OTC data for pricing")
             else:
-                print(f"[WARNING] No API OTC data available for pricing")
+                print(f"[WARNING] No REAL OTC data available for pricing")
             
+            # Only calculate and save data if we have REAL OTC transactions
             if latest_trade:
                 murf_amount = latest_trade.get('murf_amount', 0)
                 kta_amount = latest_trade.get('kta_amount', 0)
                 
-                print(f"[DEBUG] DEBUG: kta_amount={kta_amount}, murf_amount={murf_amount}")
+                print(f"[DEBUG] REAL OTC DATA: kta_amount={kta_amount}, murf_amount={murf_amount}")
                 if kta_amount > 0 and murf_amount > 0:
                     murf_kta_price = kta_amount / murf_amount  # KTA per MURF
                     exchange_rate_murf = murf_amount / kta_amount  # MURF per KTA
-                    print(f"[DATA] Real Exchange Rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                    print(f"[DATA] REAL Exchange Rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                    
+                    murf_usd_price = murf_kta_price * self.kta_price_usd
+                    murf_fdv = self.murf_total_supply * murf_usd_price
+                    murf_marketcap = self.murf_circulation * murf_usd_price
+                    
+                    # Save REAL price data to database
+                    price_data = {
+                        'timestamp': datetime.now().isoformat(),
+                        'kta_price_usd': self.kta_price_usd,
+                        'murf_kta_price': murf_kta_price,
+                        'murf_usd_price': murf_usd_price,
+                        'exchange_rate_murf': exchange_rate_murf,
+                        'murf_fdv': murf_fdv,
+                        'murf_marketcap': murf_marketcap,
+                        'type_7_count': len(type_7_txs),
+                        'last_trade_hash': last_trade_hash
+                    }
+                    self.price_db.save_price_data(price_data)
+                    print(f"[SAVE] Saved REAL data to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
                 else:
-                    # Ambil dari database terakhir jika ada
-                    last_price_data = self.price_db.get_latest_price_data()
-                    if last_price_data and last_price_data.get('exchange_rate_murf', 0) > 0:
-                        murf_kta_price = last_price_data.get('murf_kta_price', 0.000004)
-                        exchange_rate_murf = last_price_data.get('exchange_rate_murf', 250000.0)
-                        print(f"[DATA] Using last known rate: 1 KTA = {exchange_rate_murf:,.0f} MURF (from DB)")
-                    else:
-                        murf_kta_price = 0.000004  # Default fallback
-                        exchange_rate_murf = 250000.0  # Default fallback
-                        print(f"[DATA] Using default rate: 1 KTA = {exchange_rate_murf:,.0f} MURF")
+                    print(f"[WARNING] Invalid REAL OTC data: kta_amount={kta_amount}, murf_amount={murf_amount}")
+                    # Don't save invalid data
+                    murf_kta_price = 0
+                    murf_usd_price = 0
+                    murf_fdv = 0
+                    murf_marketcap = 0
+                    exchange_rate_murf = 0
             else:
-                murf_kta_price = 0.000004  # Default fallback
-                exchange_rate_murf = 250000.0  # Default fallback
-            
-            murf_usd_price = murf_kta_price * self.kta_price_usd
-            murf_fdv = self.murf_total_supply * murf_usd_price
-            murf_marketcap = self.murf_circulation * murf_usd_price
-            
-            # Save price data to database
-            price_data = {
-                'timestamp': datetime.now().isoformat(),
-                'kta_price_usd': self.kta_price_usd,
-                'murf_kta_price': murf_kta_price,
-                'murf_usd_price': murf_usd_price,
-                'exchange_rate_murf': exchange_rate_murf,
-                'murf_fdv': murf_fdv,
-                'murf_marketcap': murf_marketcap,
-                'type_7_count': len(type_7_txs),
-                'last_trade_hash': last_trade_hash
-            }
-            self.price_db.save_price_data(price_data)
-            print(f"[SAVE] Saved to DB: MURF Price = ${murf_usd_price:.8f}, Exchange Rate = {exchange_rate_murf:,.0f}")
+                print(f"[WARNING] No REAL OTC transactions found - cannot calculate MURF price")
+                # Don't save fake data
+                murf_kta_price = 0
+                murf_usd_price = 0
+                murf_fdv = 0
+                murf_marketcap = 0
+                exchange_rate_murf = 0
             
             # Get chart data
             chart_data = self.price_db.get_chart_data(50)
