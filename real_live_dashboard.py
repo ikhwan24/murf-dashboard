@@ -564,6 +564,93 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             position: relative;
         }}
         
+        /* MURF CA Verification Styles */
+        .ca-verification-box {{
+            background: #1a1a1a;
+            border: 2px solid #00d4aa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }}
+        
+        .ca-icon {{
+            font-size: 24px;
+            color: #00d4aa;
+        }}
+        
+        .ca-content {{
+            flex: 1;
+        }}
+        
+        .ca-title {{
+            color: #00d4aa;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }}
+        
+        .ca-address {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }}
+        
+        .ca-label {{
+            color: #ffffff;
+            font-weight: 500;
+        }}
+        
+        .ca-value {{
+            color: #00d4aa;
+            font-family: monospace;
+            font-size: 12px;
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            word-break: break-all;
+        }}
+        
+        .copy-btn {{
+            background: #00d4aa;
+            color: #000;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }}
+        
+        .copy-btn:hover {{
+            background: #00b894;
+            transform: scale(1.05);
+        }}
+        
+        .ca-warning {{
+            color: #ff6b6b;
+            font-size: 12px;
+            font-weight: 500;
+        }}
+        
+        @media (max-width: 768px) {{
+            .ca-verification-box {{
+                flex-direction: column;
+                text-align: center;
+            }}
+            
+            .ca-address {{
+                flex-direction: column;
+                align-items: center;
+            }}
+        }}
+        
         /* MURF Converter Styles */
         .converter-section {{
             background: #1a1a1a;
@@ -867,6 +954,20 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="chart-container">
                     <canvas id="priceChart" width="400" height="150"></canvas>
                 </div>
+            </div>
+        </div>
+        
+        <!-- MURF CA Verification -->
+        <div class="ca-verification-box">
+            <div class="ca-icon">🔐</div>
+            <div class="ca-content">
+                <div class="ca-title">Verify $MURF CA before doing OTC</div>
+                <div class="ca-address">
+                    <span class="ca-label">Contract Address:</span>
+                    <span class="ca-value">keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm</span>
+                    <button class="copy-btn" onclick="copyCA()">📋 Copy</button>
+                </div>
+                <div class="ca-warning">⚠️ Always verify the contract address before trading to avoid scams!</div>
             </div>
         </div>
         
@@ -1174,6 +1275,26 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         
         // Add event listener for real-time conversion
         murfInput.addEventListener('input', updateConverter);
+        
+        // Copy CA function
+        function copyCA() {{
+            const caAddress = 'keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm';
+            navigator.clipboard.writeText(caAddress).then(function() {{
+                // Show success message
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ Copied!';
+                copyBtn.style.background = '#00b894';
+                
+                setTimeout(function() {{
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = '#00d4aa';
+                }}, 2000);
+            }}).catch(function(err) {{
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy to clipboard');
+            }});
+        }}
         
         // Auto-refresh every 30 seconds
         setInterval(function() {{
