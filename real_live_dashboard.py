@@ -551,6 +551,111 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             position: relative;
         }}
         
+        /* MURF Converter Styles */
+        .converter-section {{
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }}
+        
+        .converter-header {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        
+        .converter-header h3 {{
+            color: #00d4aa;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+        }}
+        
+        .converter-header p {{
+            color: #888;
+            font-size: 14px;
+            margin: 0;
+        }}
+        
+        .converter-container {{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }}
+        
+        .converter-input {{
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }}
+        
+        .converter-input label {{
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 14px;
+        }}
+        
+        .converter-input input {{
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }}
+        
+        .converter-input input:focus {{
+            outline: none;
+            border-color: #00d4aa;
+            box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+        }}
+        
+        .converter-input input::placeholder {{
+            color: #666;
+        }}
+        
+        .converter-results {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }}
+        
+        .result-card {{
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }}
+        
+        .result-label {{
+            color: #888;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }}
+        
+        .result-value {{
+            color: #00d4aa;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }}
+        
+        .result-sub {{
+            color: #666;
+            font-size: 11px;
+        }}
+        
+        @media (max-width: 768px) {{
+            .converter-results {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+        
         /* DexScreener Style Chart Section */
         .chart-section {{
             background: #1a1a1a;
@@ -748,6 +853,32 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 
                 <div class="chart-container">
                     <canvas id="priceChart" width="400" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MURF Converter -->
+        <div class="converter-section">
+            <div class="converter-header">
+                <h3>💱 MURF Converter</h3>
+                <p>Convert MURF to KTA and USD based on latest OTC exchange rate</p>
+            </div>
+            <div class="converter-container">
+                <div class="converter-input">
+                    <label for="murfAmount">MURF Amount:</label>
+                    <input type="number" id="murfAmount" placeholder="Enter MURF amount" min="0" step="0.01">
+                </div>
+                <div class="converter-results">
+                    <div class="result-card">
+                        <div class="result-label">KTA Equivalent</div>
+                        <div class="result-value" id="ktaResult">0.00 KTA</div>
+                        <div class="result-sub">Based on OTC rate: 1 KTA = {stats['exchange_rate_murf']:,.0f} MURF</div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-label">USD Value</div>
+                        <div class="result-value" id="usdResult">$0.00</div>
+                        <div class="result-sub">Based on KTA price: ${stats['kta_price_usd']:.3f}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -952,6 +1083,37 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 // Here you could implement timeframe switching logic
             }});
         }});
+        
+        // MURF Converter functionality
+        const murfInput = document.getElementById('murfAmount');
+        const ktaResult = document.getElementById('ktaResult');
+        const usdResult = document.getElementById('usdResult');
+        
+        // Get exchange rate and KTA price from the page data
+        const exchangeRate = {stats['exchange_rate_murf']};
+        const ktaPrice = {stats['kta_price_usd']};
+        
+        function updateConverter() {{
+            const murfAmount = parseFloat(murfInput.value) || 0;
+            
+            if (murfAmount > 0) {{
+                // Calculate KTA equivalent
+                const ktaAmount = murfAmount / exchangeRate;
+                
+                // Calculate USD value
+                const usdValue = ktaAmount * ktaPrice;
+                
+                // Update results
+                ktaResult.textContent = ktaAmount.toFixed(6) + ' KTA';
+                usdResult.textContent = '$' + usdValue.toFixed(2);
+            }} else {{
+                ktaResult.textContent = '0.00 KTA';
+                usdResult.textContent = '$0.00';
+            }}
+        }}
+        
+        // Add event listener for real-time conversion
+        murfInput.addEventListener('input', updateConverter);
         
         // Auto-refresh every 30 seconds
         setInterval(function() {{
