@@ -972,6 +972,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         // Chart data from server
         const chartData = {json.dumps(stats.get('chart_data', {}))};
         
+        // Debug: Log chart data
+        console.log('Chart Data:', chartData);
+        console.log('MURF Prices:', chartData.murf_prices);
+        console.log('Labels:', chartData.labels);
+        
         // DexScreener style chart
         const ctx = document.getElementById('priceChart').getContext('2d');
         
