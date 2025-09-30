@@ -7,7 +7,7 @@ def add_valid_otc_transactions():
     """Add valid OTC transactions to database"""
     db_path = "otc_transactions.db"
     
-    # Valid OTC transactions based on the image
+    # Valid OTC transactions with different addresses
     valid_otc_transactions = [
         {
             'tx_hash': 'A0C673572D02641C0F7614595C0F6150120BB32C6D07E369EB164034792CF50C',
@@ -16,7 +16,7 @@ def add_valid_otc_transactions():
             'murf_amount': 200000,
             'exchange_rate': 200000,
             'from_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
-            'to_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
+            'to_address': 'keeta_aabmds42gxybicqutzwytrydeiz4e4dkgrmuh2uzzhenjcl4h57cwvicbeozccy',
             'timestamp': datetime.now().isoformat()
         },
         {
@@ -25,8 +25,8 @@ def add_valid_otc_transactions():
             'kta_amount': 2.5,
             'murf_amount': 500000,
             'exchange_rate': 200000,
-            'from_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
-            'to_address': 'keeta_aabmds42gxybicqutzwytrydeiz4e4dkgrmuh2uzzhenjcl4h57cwvicbeozccy',
+            'from_address': 'keeta_aabmds42gxybicqutzwytrydeiz4e4dkgrmuh2uzzhenjcl4h57cwvicbeozccy',
+            'to_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
             'timestamp': (datetime.now().replace(microsecond=0)).isoformat()
         },
         {
@@ -35,8 +35,28 @@ def add_valid_otc_transactions():
             'kta_amount': 0.75,
             'murf_amount': 150000,
             'exchange_rate': 200000,
+            'from_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
+            'to_address': 'keeta_aabmds42gxybicqutzwytrydeiz4e4dkgrmuh2uzzhenjcl4h57cwvicbeozccy',
+            'timestamp': (datetime.now().replace(microsecond=0)).isoformat()
+        },
+        {
+            'tx_hash': 'D3F9A6805359574G2I0947928F3H9483453EE65F9G602GD497397367025125FH83F',
+            'block_hash': 'D3F9A6805359574G2I0947928F3H9483453EE65F9G602GD497397367025125FH83F',
+            'kta_amount': 3.2,
+            'murf_amount': 640000,
+            'exchange_rate': 200000,
             'from_address': 'keeta_aabmds42gxybicqutzwytrydeiz4e4dkgrmuh2uzzhenjcl4h57cwvicbeozccy',
             'to_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
+            'timestamp': (datetime.now().replace(microsecond=0)).isoformat()
+        },
+        {
+            'tx_hash': 'E4G0B7916460685H3J1058039G4I0594564FF76G0H713HE508408478136236GI94G',
+            'block_hash': 'E4G0B7916460685H3J1058039G4I0594564FF76G0H713HE508408478136236GI94G',
+            'kta_amount': 1.8,
+            'murf_amount': 360000,
+            'exchange_rate': 200000,
+            'from_address': 'keeta_aab4nfsiygnkaypqbwjp422xl4m4hsljz3bnq4unpfzs4blhyfr5ca2lsr3jeay',
+            'to_address': 'keeta_aabmds42gxybicqutzwytrydeiz4e4dkgrmuh2uzzhenjcl4h57cwvicbeozccy',
             'timestamp': (datetime.now().replace(microsecond=0)).isoformat()
         }
     ]
