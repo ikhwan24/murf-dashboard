@@ -564,6 +564,134 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             position: relative;
         }}
         
+        /* Latest OTC Transactions Styles */
+        .latest-otc-section {{
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }}
+        
+        .otc-header {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        
+        .otc-header h3 {{
+            color: #00d4aa;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+        }}
+        
+        .otc-header p {{
+            color: #888;
+            font-size: 14px;
+            margin: 0;
+        }}
+        
+        .otc-list {{
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }}
+        
+        .otc-item {{
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.2s ease;
+        }}
+        
+        .otc-item:hover {{
+            border-color: #00d4aa;
+            transform: translateY(-1px);
+        }}
+        
+        .otc-main {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }}
+        
+        .otc-amounts {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+        
+        .otc-kta {{
+            color: #00d4aa;
+            font-weight: bold;
+            font-size: 14px;
+        }}
+        
+        .otc-arrow {{
+            color: #888;
+            font-size: 12px;
+        }}
+        
+        .otc-murf {{
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 14px;
+        }}
+        
+        .otc-time {{
+            color: #888;
+            font-size: 12px;
+            font-weight: 500;
+        }}
+        
+        .otc-details {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }}
+        
+        .otc-rate {{
+            color: #00d4aa;
+            font-weight: 500;
+        }}
+        
+        .otc-addresses {{
+            display: flex;
+            gap: 8px;
+        }}
+        
+        .otc-from {{
+            color: #888;
+        }}
+        
+        .otc-to {{
+            color: #888;
+        }}
+        
+        .no-otc {{
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            padding: 20px;
+        }}
+        
+        @media (max-width: 768px) {{
+            .otc-main {{
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }}
+            
+            .otc-details {{
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }}
+        }}
+        
         /* MURF CA Verification Styles */
         .ca-verification-box {{
             background: #1a1a1a;
@@ -954,6 +1082,17 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="chart-container">
                     <canvas id="priceChart" width="400" height="150"></canvas>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Latest OTC Transactions -->
+        <div class="latest-otc-section">
+            <div class="otc-header">
+                <h3>🔄 Latest OTC Transactions</h3>
+                <p>Recent MURF/KTA OTC trades from Keeta Network</p>
+            </div>
+            <div class="otc-transactions">
+                {self._render_latest_otc(stats.get('type_7_murf_txs', [])[:5])}
             </div>
         </div>
         
@@ -1428,6 +1567,64 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 </div>
             </div>
             '''
+        return html
+    
+    def _render_latest_otc(self, trades):
+        """Render latest OTC transactions in compact format"""
+        if not trades:
+            return '<div class="no-otc">No recent OTC transactions found</div>'
+        
+        html = '<div class="otc-list">'
+        for trade in trades:
+            kta_amount = trade.get('kta_amount', 0)
+            murf_amount = trade.get('murf_amount', 0)
+            from_addr = trade.get('from_address', 'N/A')
+            to_addr = trade.get('to_address', 'N/A')
+            date = trade.get('date', 'N/A')
+            exchange_rate = trade.get('exchange_rate', 0)
+            
+            # Format addresses
+            from_short = from_addr[:6] + '...' + from_addr[-6:] if len(from_addr) > 12 else from_addr
+            to_short = to_addr[:6] + '...' + to_addr[-6:] if len(to_addr) > 12 else to_addr
+            
+            # Format amounts
+            kta_formatted = f"{kta_amount:.2f}" if kta_amount > 0 else "0.00"
+            murf_formatted = f"{murf_amount:,.0f}" if murf_amount > 0 else "0"
+            
+            # Calculate exchange rate
+            rate_text = f"1 KTA = {exchange_rate:,.0f} MURF" if exchange_rate > 0 else "Rate: N/A"
+            
+            # Format date
+            try:
+                from datetime import datetime
+                dt = datetime.fromisoformat(date.replace('Z', '+00:00'))
+                time_str = dt.strftime('%H:%M')
+                date_str = dt.strftime('%m/%d')
+            except:
+                time_str = date.split('T')[1][:5] if 'T' in date else date
+                date_str = date.split('T')[0] if 'T' in date else date
+            
+            html += f'''
+            <div class="otc-item">
+                <div class="otc-main">
+                    <div class="otc-amounts">
+                        <span class="otc-kta">{kta_formatted} KTA</span>
+                        <span class="otc-arrow">↔</span>
+                        <span class="otc-murf">{murf_formatted} MURF</span>
+                    </div>
+                    <div class="otc-time">{time_str}</div>
+                </div>
+                <div class="otc-details">
+                    <div class="otc-rate">{rate_text}</div>
+                    <div class="otc-addresses">
+                        <span class="otc-from">{from_short}</span>
+                        <span class="otc-to">{to_short}</span>
+                    </div>
+                </div>
+            </div>
+            '''
+        
+        html += '</div>'
         return html
     
     def serve_stats(self):
