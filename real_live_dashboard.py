@@ -187,15 +187,36 @@ class RealLiveAPIClient:
     def get_token_statistics(self):
         """Get real token statistics"""
         try:
-            keeta_data = self.fetch_keeta_data()
-            analysis = self.analyze_keeta_data(keeta_data)
+            # Try to fetch fresh data from API
+            keeta_data = None
+            analysis = None
             
-            # Gunakan data type 7 MURF yang benar jika ada
-            type_7_txs = analysis.get('type_7_murf_txs', [])
+            try:
+                keeta_data = self.fetch_keeta_data()
+                if keeta_data:
+                    analysis = self.analyze_keeta_data(keeta_data)
+                    print("✅ API data fetched successfully")
+                else:
+                    print("⚠️ API data fetch failed, using database fallback")
+            except Exception as api_error:
+                print(f"❌ API Error: {api_error}")
+                print("📊 Using database fallback for data")
+            
+            # Initialize variables
+            type_7_txs = []
             last_trade_hash = "N/A"
             last_trade_time = "N/A"
             
-            # Juga ambil dari database untuk data yang lebih komprehensif
+            # Get data from API if available
+            if analysis:
+                type_7_txs = analysis.get('type_7_murf_txs', [])
+                if type_7_txs:
+                    latest_tx = type_7_txs[0]
+                    last_trade_hash = latest_tx['tx_hash']
+                    last_trade_time = latest_tx['timestamp']
+                    print(f"🔗 Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
+            
+            # Always get from database for comprehensive data
             db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
             print(f"📊 Database OTC transactions: {len(db_otc_transactions)}")
             
@@ -205,18 +226,15 @@ class RealLiveAPIClient:
             else:
                 print("⚠️  No OTC transactions found in database")
             
-            if type_7_txs:
-                # Ambil transaksi terbaru
-                latest_tx = type_7_txs[0]  # Diasumsikan sudah diurutkan dari terbaru
-                last_trade_hash = latest_tx['tx_hash']
-                last_trade_time = latest_tx['timestamp']
-                print(f"🔗 Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
-            elif db_otc_transactions:
-                # Gunakan data dari database jika tidak ada data baru
+            # Use database data if no API data available
+            if not type_7_txs and db_otc_transactions:
+                # Gunakan data dari database jika tidak ada data API
                 latest_tx = db_otc_transactions[0]
                 last_trade_hash = latest_tx['tx_hash']
                 last_trade_time = latest_tx['timestamp']
                 print(f"📊 Using database OTC data: {last_trade_hash[:20]}... at {last_trade_time}")
+                # Use database data as type_7_txs for display
+                type_7_txs = db_otc_transactions
             
             # Calculate MURF price based on real OTC trades
             latest_trade = None
