@@ -216,32 +216,21 @@ class RealLiveAPIClient:
                     last_trade_time = latest_tx['timestamp']
                     print(f"[LINK] Last Type 7 MURF trade: {last_trade_hash[:20]}... at {last_trade_time}")
             
-            # Always get from database for comprehensive data
-            db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
-            print(f"[DATA] Database OTC transactions: {len(db_otc_transactions)}")
+            # Only use API data, not database
+            print(f"[DEBUG] Using only API data, not database")
+            print(f"[DEBUG] API OTC transactions found: {len(type_7_txs)}")
             
-            # Debug: Tampilkan data dari database
-            if db_otc_transactions:
-                print(f"[DEBUG] Database OTC sample: {db_otc_transactions[0]}")
-            else:
-                print("[WARNING]  No OTC transactions found in database")
+            if not type_7_txs:
+                print("[WARNING] No OTC transactions found in API data")
+                # Don't use database data - only show API data
             
-            # Use database data if no API data available
-            if not type_7_txs and db_otc_transactions:
-                # Gunakan data dari database jika tidak ada data API
-                latest_tx = db_otc_transactions[0]
-                last_trade_hash = latest_tx['tx_hash']
-                last_trade_time = latest_tx['timestamp']
-                print(f"[DATA] Using database OTC data: {last_trade_hash[:20]}... at {last_trade_time}")
-                # Use database data as type_7_txs for display
-                type_7_txs = db_otc_transactions
-            
-            # Calculate MURF price based on real OTC trades
+            # Calculate MURF price based on real OTC trades from API only
             latest_trade = None
             if type_7_txs:
                 latest_trade = type_7_txs[0]
-            elif db_otc_transactions:
-                latest_trade = db_otc_transactions[0]
+                print(f"[DEBUG] Using API OTC data for pricing")
+            else:
+                print(f"[WARNING] No API OTC data available for pricing")
             
             if latest_trade:
                 murf_amount = latest_trade.get('murf_amount', 0)
@@ -316,7 +305,7 @@ class RealLiveAPIClient:
                 "last_trade_hash": last_trade_hash,
                 "last_trade_time": last_trade_time,
                 "type_7_count": len(type_7_txs),
-                "type_7_murf_txs": type_7_txs + db_otc_transactions,
+                "type_7_murf_txs": type_7_txs,
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
                 "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected"
