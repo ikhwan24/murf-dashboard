@@ -157,6 +157,12 @@ class RealLiveAPIClient:
                                     'exchange_rate': murf_amount/kta_amount if kta_amount > 0 else 0
                                 }
                                 
+                                # Debug: Check if addresses are the same
+                                if from_addr == to_addr:
+                                    print(f"   [INFO] Same address OTC: {from_addr[:20]}... (self-trade or internal transfer)")
+                                else:
+                                    print(f"   [INFO] Different addresses OTC: {from_addr[:20]}... -> {to_addr[:20]}...")
+                                
                                 # Simpan ke database
                                 self.otc_db.save_otc_transaction(otc_tx_data)
                                 

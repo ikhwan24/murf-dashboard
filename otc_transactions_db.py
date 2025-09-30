@@ -57,9 +57,9 @@ class OTCTransactionsDB:
                 tx_data.get('timestamp', '')
             ))
             conn.commit()
-            print(f"💾 Saved OTC transaction: {tx_data.get('tx_hash', '')[:20]}...")
+            print(f"[SAVE] Saved OTC transaction: {tx_data.get('tx_hash', '')[:20]}...")
         except Exception as e:
-            print(f"❌ Error saving OTC transaction: {e}")
+            print(f"[ERROR] Error saving OTC transaction: {e}")
         finally:
             conn.close()
     
