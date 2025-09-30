@@ -324,26 +324,139 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         body {{
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
+            padding: 0;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            color: #ffffff;
             min-height: 100vh;
+        }}
+        
+        /* Hero Section */
+        .hero-section {{
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 50%, #00a085 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }}
+        
+        .hero-section::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }}
+        
+        .hero-content {{
+            position: relative;
+            z-index: 1;
+        }}
+        
+        .hero-title {{
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease-out;
+        }}
+        
+        .hero-subtitle {{
+            font-size: 1.2rem;
+            margin: 0 0 40px 0;
+            opacity: 0.9;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }}
+        
+        .hero-stats {{
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }}
+        
+        .hero-stat {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 120px;
+            transition: all 0.3s ease;
+        }}
+        
+        .hero-stat:hover {{
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }}
+        
+        .hero-stat-value {{
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }}
+        
+        .hero-stat-label {{
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }}
+        
+        @keyframes fadeInUp {{
+            from {{
+                opacity: 0;
+                transform: translateY(30px);
+            }}
+            to {{
+                opacity: 1;
+                transform: translateY(0);
+            }}
+        }}
+        
+        @media (max-width: 768px) {{
+            .hero-title {{
+                font-size: 2rem;
+            }}
+            
+            .hero-stats {{
+                gap: 20px;
+            }}
+            
+            .hero-stat {{
+                min-width: 100px;
+                padding: 15px;
+            }}
         }}
         .container {{
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
         }}
         .header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+            display: none;
+        }}
+        
+        /* Loading Animation */
+        .loading {{
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #00d4aa;
+            animation: spin 1s ease-in-out infinite;
+        }}
+        
+        @keyframes spin {{
+            to {{ transform: rotate(360deg); }}
         }}
         .header h1 {{
             margin: 0;
@@ -387,12 +500,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             padding: 30px;
         }}
         .stat-card {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
             border-radius: 15px;
             padding: 25px;
-            border: none;
+            border: 1px solid #333;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
             position: relative;
             overflow: hidden;
         }}
@@ -408,7 +521,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         .stat-card:hover {{
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 15px 40px rgba(0, 212, 170, 0.4);
+            border-color: #00d4aa;
         }}
         .stat-label {{
             font-size: 1.1em;
@@ -1060,6 +1174,28 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             </div>
         </div>
         
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">🚀 MURF Token Dashboard</h1>
+                <p class="hero-subtitle">Real-time MURF/KTA OTC Trading Analytics</p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">${stats.get('murf_usd_price', 0):.8f}</span>
+                        <span class="hero-stat-label">MURF Price</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">{stats.get('exchange_rate_murf', 0):,.0f}</span>
+                        <span class="hero-stat-label">MURF per KTA</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">${stats.get('kta_price_usd', 0):.3f}</span>
+                        <span class="hero-stat-label">KTA Price</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="warning-box">
             <strong>✅ Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
             MURF price is calculated based on the live KTA price and OTC exchange rate. 
@@ -1437,7 +1573,15 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         
         // Auto-refresh every 30 seconds
         setInterval(function() {{
-            location.reload();
+            // Show loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.innerHTML = '<div class="loading"></div> Refreshing data...';
+            loadingDiv.style.cssText = 'position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.8);color:white;padding:10px;border-radius:5px;z-index:9999;';
+            document.body.appendChild(loadingDiv);
+            
+            setTimeout(() => {{
+                location.reload();
+            }}, 1000);
         }}, 30000);
     </script>
 </body>
