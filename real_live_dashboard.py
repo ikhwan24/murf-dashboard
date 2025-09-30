@@ -245,6 +245,14 @@ class RealLiveAPIClient:
             if chart_data.get('murf_prices'):
                 print(f"📈 Latest MURF Price in Chart: ${chart_data['murf_prices'][-1]:.8f}")
                 print(f"📈 First MURF Price in Chart: ${chart_data['murf_prices'][0]:.8f}")
+                
+            # Force update chart data with current data
+            if chart_data.get('murf_prices'):
+                # Replace last data point with current data
+                chart_data['murf_prices'][-1] = murf_usd_price
+                chart_data['kta_prices'][-1] = self.kta_price_usd
+                chart_data['market_caps'][-1] = murf_marketcap
+                print(f"🔄 Updated Chart: Latest MURF Price = ${murf_usd_price:.8f}")
             
             return {
                 "murf_total_supply": self.murf_total_supply,
