@@ -1765,12 +1765,14 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             return '<div class="no-otc">No recent OTC transactions found</div>'
         
         html = '<div class="otc-list">'
-        for trade in trades:
+        print(f"🔍 DEBUG: Rendering {len(trades)} OTC trades")
+        for i, trade in enumerate(trades):
+            print(f"🔍 Trade {i+1}: {trade}")
             kta_amount = trade.get('kta_amount', 0)
             murf_amount = trade.get('murf_amount', 0)
             from_addr = trade.get('from_address', 'N/A')
             to_addr = trade.get('to_address', 'N/A')
-            date = trade.get('date', 'N/A')
+            date = trade.get('timestamp', trade.get('date', 'N/A'))  # Use timestamp first, fallback to date
             exchange_rate = trade.get('exchange_rate', 0)
             
             # Format addresses
