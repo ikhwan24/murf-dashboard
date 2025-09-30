@@ -1107,7 +1107,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             message.innerHTML = `
                 <div>
                     <div style="font-size: 24px; margin-bottom: 8px;">📊</div>
-                    <div>${timeframe.toUpperCase()} data not available yet</div>
+                    <div>` + timeframe.toUpperCase() + ` data not available yet</div>
                     <div style="font-size: 12px; margin-top: 4px; color: #666;">
                         Database is collecting historical data...
                     </div>
