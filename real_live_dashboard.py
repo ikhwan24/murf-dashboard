@@ -499,9 +499,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-size: 1.1em;
         }}
         .status-bar {{
-            background: #f8f9fa;
+            background: #1a1a1a;
             padding: 15px 30px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -510,6 +510,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             display: flex;
             align-items: center;
             gap: 8px;
+            color: #ffffff;
+            font-weight: 500;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
         }}
         .status-indicator {{
             width: 10px;
