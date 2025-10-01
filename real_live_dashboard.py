@@ -1669,6 +1669,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="stat-sub">Circulating Market Cap</div>
             </div>
             
+            <div class="stat-card">
+                <div class="stat-label">Type 7 MURF Trades</div>
+                <div class="stat-value">{stats.get('type_7_count', 0)}</div>
+                <div class="stat-sub">OTC Transactions Found</div>
+            </div>
             
             <div class="stat-card">
                 <div class="stat-label">OTC Volume (1H)</div>
