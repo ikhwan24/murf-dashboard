@@ -530,7 +530,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #7091DF 0%, #0BAA1B 100%);
+            background: linear-gradient(135deg, #FF886D 0%, #0BAA1B 100%);
             color: #2C2A2A;
             min-height: 100vh;
         }}
