@@ -82,7 +82,7 @@ class RealLiveAPIClient:
     
     def analyze_keeta_data(self, data):
         """Analyze Keeta data for OTC transactions - Type 7 KTA + Type 0 MURF dalam block yang sama"""
-        if not data or 'history' not in data:
+        if not data:
             return {
                 'total_blocks': 0,
                 'recent_activity': [],
@@ -98,101 +98,104 @@ class RealLiveAPIClient:
         kta_token = "keeta_anqdilpazdekdu4acw65fj7smltcp26wbrildkqtszqvverljpwpezmd44ssg"
         murf_token = "keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm"
         
-        print(f"Analyzing {len(data['history'])} history entries for OTC transactions...")
+        # Check for new API structure (blocks directly in root)
+        if 'blocks' in data:
+            print(f"Analyzing {len(data['blocks'])} blocks for OTC transactions...")
+            blocks = data['blocks']
+        elif 'history' in data:
+            print(f"Analyzing {len(data['history'])} history entries for OTC transactions...")
+            # Old structure - look for blocks in history entries
+            blocks = []
+            for entry in data['history']:
+                if 'voteStaple' in entry and 'blocks' in entry['voteStaple']:
+                    blocks.extend(entry['voteStaple']['blocks'])
+        else:
+            print("[WARNING] No 'blocks' or 'history' found in API response")
+            return {
+                'total_blocks': 0,
+                'recent_activity': [],
+                'last_update': datetime.now().isoformat(),
+                'type_7_murf_txs': []
+            }
         
-        for entry in data['history']:
-            if 'voteStaple' in entry and 'blocks' in entry['voteStaple']:
-                blocks = entry['voteStaple']['blocks']
+        # Process blocks for OTC transactions
+        for j, block in enumerate(blocks):
+            if 'operations' in block:
+                operations = block['operations']
+                total_blocks += 1
                 
-                for j, block in enumerate(blocks):
-                    if 'operations' in block:
-                        operations = block['operations']
-                        total_blocks += 1
+                # Cari Type 7 KTA operations
+                for op in operations:
+                    op_type = op.get('type')
+                    token = op.get('token', '')
+                    
+                    # Type 7 dengan KTA token
+                    if op_type == 7 and kta_token in token:
+                        kta_amount = self.hex_to_decimal(op.get('amount', '0x0')) / 1e18
+                        from_addr = op.get('from', 'N/A')
+                        exact = op.get('exact', False)
                         
-                        # Cari Type 7 KTA operations
-                        for op in operations:
-                            op_type = op.get('type')
-                            token = op.get('token', '')
-                            
-                            # Type 7 dengan KTA token
-                            if op_type == 7 and kta_token in token:
-                                kta_amount = self.hex_to_decimal(op.get('amount', '0x0')) / 1e18
-                                from_addr = op.get('from', 'N/A')
-                                exact = op.get('exact', False)
-                                
-                                print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
-                                
-                                # Cari related Type 0 MURF dalam block yang sama atau block sebelumnya
-                                murf_amount = 0
-                                to_addr = 'N/A'
-                                
-                                # Cari dalam block yang sama dulu
-                                for related_op in operations:
-                                    if (related_op.get('type') == 0 and 
-                                        related_op.get('token') == murf_token):
-                                        murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
-                                        murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
-                                        to_addr = related_op.get('to', 'N/A')
-                                        print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
+                        print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
+                        
+                        # Cari related Type 0 MURF dalam block yang sama atau block sebelumnya
+                        murf_amount = 0
+                        to_addr = 'N/A'
+                        
+                        # Cari dalam block yang sama dulu
+                        for related_op in operations:
+                            if (related_op.get('type') == 0 and 
+                                related_op.get('token') == murf_token):
+                                murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
+                                murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
+                                to_addr = related_op.get('to', 'N/A')
+                                print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
+                                break
+                        
+                        # Jika tidak ada dalam block yang sama, cari di block sebelumnya
+                        if murf_amount == 0 and j > 0:
+                            prev_block = blocks[j-1]
+                            if 'operations' in prev_block:
+                                for prev_op in prev_block['operations']:
+                                    if (prev_op.get('type') == 0 and 
+                                        murf_token in prev_op.get('token', '')):
+                                        murf_amount = self.hex_to_decimal(prev_op.get('amount', '0x0'))  # TIDAK dibagi 1e18 untuk MURF
+                                        to_addr = prev_op.get('to', 'N/A')
                                         break
-                                
-                                # Jika tidak ada dalam block yang sama, cari di block sebelumnya
-                                if murf_amount == 0 and j > 0:
-                                    prev_block = blocks[j-1]
-                                    if 'operations' in prev_block:
-                                        for prev_op in prev_block['operations']:
-                                            if (prev_op.get('type') == 0 and 
-                                                murf_token in prev_op.get('token', '')):
-                                                murf_amount = self.hex_to_decimal(prev_op.get('amount', '0x0')) / 1e18
-                                                to_addr = prev_op.get('to', 'N/A')
-                                                break
-                                
-                                print(f"   MURF found: {murf_amount:.2f} MURF")
-                                
-                                # Simpan OTC transaction ke database dengan pola yang benar
-                                # Pengirim: from_addr (dari Type 7 KTA)
-                                # Penerima: account field (dari block header)
-                                account_addr = block.get('account', to_addr)  # Fallback ke to_addr jika tidak ada account
-                                
-                                otc_tx_data = {
-                                    'tx_hash': block.get('$hash', 'N/A'),
-                                    'block_hash': block.get('$hash', 'N/A'),
-                                    'kta_amount': kta_amount,
-                                    'murf_amount': murf_amount,
-                                    'from_address': from_addr,  # Pengirim dari Type 7
-                                    'to_address': account_addr,  # Penerima dari account field
-                                    'timestamp': block.get('date', 'N/A'),
-                                    'exchange_rate': murf_amount/kta_amount if kta_amount > 0 else 0
-                                }
-                                
-                                # Debug: Show correct sender/receiver pattern
-                                print(f"   [INFO] OTC Pattern:")
-                                print(f"     Sender (Type 7): {from_addr[:20]}...")
-                                print(f"     Receiver (Account): {account_addr[:20]}...")
-                                print(f"     Different: {from_addr != account_addr}")
-                                
-                                # VALIDATION: Only save if MURF amount > 0 (real MURF OTC)
-                                if murf_amount > 0:
-                                    print(f"   [SAVE] Valid MURF OTC: {murf_amount:,.0f} MURF")
-                                    # Simpan ke database
-                                    self.otc_db.save_otc_transaction(otc_tx_data)
-                                    
-                                    # Tambahkan ke list
-                                    otc_transactions.append(otc_tx_data)
-                                else:
-                                    print(f"   [SKIP] Not MURF OTC: {murf_amount} MURF (token: {related_op.get('token', 'N/A')[:20]}...)")
-                
-                # Juga simpan activity untuk display
-                if 'votes' in entry['voteStaple']:
-                    for vote in entry['voteStaple']['votes']:
-                        if 'blocks' in vote:
-                            recent_activity.append({
-                                'issuer': vote.get('issuer', ''),
-                                'serial': vote.get('serial', ''),
-                                'blocks_count': len(vote['blocks']),
-                                'validity_from': vote.get('validityFrom', ''),
-                                'block_hashes': vote['blocks'][:3]  # First 3 blocks
-                            })
+                        
+                        print(f"   MURF found: {murf_amount:.2f} MURF")
+                        
+                        # Simpan OTC transaction ke database dengan pola yang benar
+                        # Pengirim: from_addr (dari Type 7 KTA)
+                        # Penerima: account field (dari block header)
+                        account_addr = block.get('account', to_addr)  # Fallback ke to_addr jika tidak ada account
+                        
+                        otc_tx_data = {
+                            'tx_hash': block.get('$hash', 'N/A'),
+                            'block_hash': block.get('$hash', 'N/A'),
+                            'kta_amount': kta_amount,
+                            'murf_amount': murf_amount,
+                            'from_address': from_addr,  # Pengirim dari Type 7
+                            'to_address': account_addr,  # Penerima dari account field
+                            'timestamp': block.get('date', 'N/A'),
+                            'exchange_rate': murf_amount/kta_amount if kta_amount > 0 else 0
+                        }
+                        
+                        # Debug: Show correct sender/receiver pattern
+                        print(f"   [INFO] OTC Pattern:")
+                        print(f"     Sender (Type 7): {from_addr[:20]}...")
+                        print(f"     Receiver (Account): {account_addr[:20]}...")
+                        print(f"     Different: {from_addr != account_addr}")
+                        
+                        # VALIDATION: Only save if MURF amount > 0 (real MURF OTC)
+                        if murf_amount > 0:
+                            print(f"   [SAVE] Valid MURF OTC: {murf_amount:,.0f} MURF")
+                            # Simpan ke database
+                            self.otc_db.save_otc_transaction(otc_tx_data)
+                            
+                            # Tambahkan ke list
+                            otc_transactions.append(otc_tx_data)
+                        else:
+                            print(f"   [SKIP] Not MURF OTC: {murf_amount} MURF")
         
         print(f"[DATA] Found {len(otc_transactions)} OTC transactions")
         
@@ -527,14 +530,14 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-            color: #ffffff;
+            background: linear-gradient(135deg, #7091DF 0%, #0BAA1B 100%);
+            color: #2C2A2A;
             min-height: 100vh;
         }}
         
         /* Hero Section */
         .hero-section {{
-            background: linear-gradient(135deg, #00d4aa 0%, #00b894 50%, #00a085 100%);
+            background: linear-gradient(135deg, #0BAA1B 0%, #0B6111 50%, #0BAA1B 100%);
             padding: 60px 20px;
             text-align: center;
             color: white;
@@ -706,12 +709,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             padding: 30px;
         }}
         .stat-card {{
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            background: linear-gradient(135deg, #FFFFFF 0%, #CAE0E3 100%);
             border-radius: 15px;
             padding: 25px;
-            border: 1px solid #333;
+            border: 2px solid #0BAA1B;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 25px rgba(11, 170, 27, 0.3);
             position: relative;
             overflow: hidden;
         }}
@@ -727,12 +730,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         .stat-card:hover {{
             transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 15px 40px rgba(0, 212, 170, 0.4);
-            border-color: #00d4aa;
+            box-shadow: 0 15px 40px rgba(11, 170, 27, 0.4);
+            border-color: #0B6111;
         }}
         .stat-label {{
             font-size: 1.1em;
-            color: #ffffff;
+            color: #2C2A2A;
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -745,16 +748,15 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         .stat-value {{
             font-size: 2.2em;
             font-weight: 900;
-            color: #ffffff;
+            color: #0BAA1B;
             margin-bottom: 8px;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.7);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
             position: relative;
             z-index: 1;
-            -webkit-text-stroke: 1px rgba(0,0,0,0.4);
         }}
         .stat-sub {{
             font-size: 1.0em;
-            color: #ffffff;
+            color: #2C2A2A;
             position: relative;
             z-index: 1;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.6);
@@ -852,11 +854,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         
         .donation-section {{
             padding: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0BAA1B 0%, #0B6111 100%);
             margin: 20px 30px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 8px 25px rgba(11, 170, 27, 0.3);
         }}
         
         .donation-title {{
@@ -1483,13 +1485,15 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             position: relative;
             height: 400px;
             width: 100%;
-            background: #1a1a1a;
+            background: #FFFFFF;
+            border: 2px solid #0BAA1B;
+            border-radius: 12px;
         }}
         
         .chart-footer {{
             padding: 16px 24px;
-            background: #1a1a1a;
-            border-top: 1px solid #333;
+            background: #CAE0E3;
+            border-top: 2px solid #0BAA1B;
         }}
         
         .chart-info {{
@@ -2243,9 +2247,9 @@ def main():
     print("[WARNING]  WARNING: Prices are estimates, not live trading prices")
     print("Press Ctrl+C to stop")
     
-    # Start background holders refresh
+    # Start background holders refresh (DISABLED for faster startup)
     client = RealLiveAPIClient()
-    client.smart_holders.start_background_refresh()
+    # client.smart_holders.start_background_refresh()
     
     with socketserver.TCPServer(("0.0.0.0", PORT), RealLiveDashboardHandler) as httpd:
         print(f"[OK] Server running on port {PORT}")
