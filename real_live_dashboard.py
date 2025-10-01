@@ -567,13 +567,43 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             margin: 0 0 16px 0;
             color: #ffffff;
             animation: fadeInUp 0.8s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }}
+        
+        .murphy-logo {{
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #404040 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            border: 3px solid #FF886D;
+            box-shadow: 0 4px 12px rgba(255, 136, 109, 0.3);
+        }}
+        
+        .murphy-cat {{
+            font-size: 2.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }}
         
         .hero-subtitle {{
             font-size: 1.1rem;
-            margin: 0 0 40px 0;
+            margin: 0 0 10px 0;
             color: #FF886D;
             animation: fadeInUp 0.8s ease-out 0.2s both;
+        }}
+        
+        .murphy-tagline {{
+            font-size: 0.9rem;
+            margin: 0 0 40px 0;
+            color: #cccccc;
+            font-style: italic;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
         }}
         
         .hero-stats {{
@@ -1509,8 +1539,14 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         <!-- Hero Section -->
         <div class="hero-section">
             <div class="hero-content">
-                <h1 class="hero-title">🚀 MURF Token Dashboard</h1>
+                <h1 class="hero-title">
+                    <div class="murphy-logo">
+                        <span class="murphy-cat">🐱</span>
+                    </div>
+                    MURF Token Dashboard
+                </h1>
                 <p class="hero-subtitle">Real-time MURF/KTA OTC Trading Analytics</p>
+                <p class="murphy-tagline">THE KEETA FOUNDER'S CAT</p>
                 <div class="hero-stats">
                     <div class="hero-stat">
                         <span class="hero-stat-value">${stats.get('murf_usd_price', 0):.8f}</span>
