@@ -232,8 +232,8 @@ class RealLiveAPIClient:
             db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
             print(f"[DATA] Database OTC transactions: {len(db_otc_transactions)}")
             
-            # Use database data if no API data available
-            if not type_7_txs and db_otc_transactions:
+            # Always use database data for comprehensive OTC history
+            if db_otc_transactions:
                 print(f"[DATA] Using database OTC data: {len(db_otc_transactions)} transactions")
                 type_7_txs = db_otc_transactions
             elif type_7_txs:
