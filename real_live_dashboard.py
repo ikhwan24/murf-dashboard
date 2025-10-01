@@ -527,22 +527,22 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
     <title>MURF Token Dashboard - Real Live Data</title>
     <style>
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #FF886D 0%, #0BAA1B 100%);
-            color: #2C2A2A;
+            background: #f8fafc;
+            color: #1e293b;
             min-height: 100vh;
+            line-height: 1.6;
         }}
         
         /* Hero Section */
         .hero-section {{
-            background: linear-gradient(135deg, #0BAA1B 0%, #0B6111 50%, #0BAA1B 100%);
-            padding: 60px 20px;
+            background: #ffffff;
+            padding: 40px 20px;
             text-align: center;
-            color: white;
-            position: relative;
-            overflow: hidden;
+            color: #1e293b;
+            border-bottom: 1px solid #e2e8f0;
         }}
         
         .hero-section::before {{
@@ -562,18 +562,17 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .hero-title {{
-            font-size: 3rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 600;
             margin: 0 0 16px 0;
-            color: #ffffff;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.6);
+            color: #1e293b;
             animation: fadeInUp 0.8s ease-out;
         }}
         
         .hero-subtitle {{
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin: 0 0 40px 0;
-            opacity: 0.9;
+            color: #64748b;
             animation: fadeInUp 0.8s ease-out 0.2s both;
         }}
         
@@ -709,87 +708,73 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             padding: 30px;
         }}
         .stat-card {{
-            background: linear-gradient(135deg, #FFFFFF 0%, #CAE0E3 100%);
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #0BAA1B;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(11, 170, 27, 0.3);
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             position: relative;
-            overflow: hidden;
-        }}
-        .stat-card::before {{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-            border-radius: 15px;
         }}
         .stat-card:hover {{
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 15px 40px rgba(11, 170, 27, 0.4);
-            border-color: #0B6111;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: #cbd5e1;
         }}
         .stat-label {{
-            font-size: 1.1em;
-            color: #2C2A2A;
-            margin-bottom: 10px;
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 800;
+            letter-spacing: 0.5px;
+            font-weight: 500;
             position: relative;
             z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.6);
-            -webkit-text-stroke: 0.5px rgba(0,0,0,0.3);
         }}
         .stat-value {{
-            font-size: 2.2em;
-            font-weight: 900;
-            color: #0BAA1B;
-            margin-bottom: 8px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 4px;
             position: relative;
             z-index: 1;
         }}
         .stat-sub {{
-            font-size: 1.0em;
-            color: #2C2A2A;
+            font-size: 0.875rem;
+            color: #64748b;
             position: relative;
             z-index: 1;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.6);
-            font-weight: 600;
-            -webkit-text-stroke: 0.3px rgba(0,0,0,0.3);
+            font-weight: 400;
         }}
         .holders-section {{
             margin: 20px 30px;
             background: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }}
         
         .holders-header {{
-            background: linear-gradient(135deg, #FF886D 0%, #FF886D 100%);
-            padding: 20px 30px;
-            color: #ffffff;
+            background: #f8fafc;
+            padding: 20px 24px;
+            color: #1e293b;
+            border-bottom: 1px solid #e2e8f0;
         }}
         
         .holders-header h3 {{
-            margin: 0 0 10px 0;
-            font-size: 1.5em;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin: 0 0 8px 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
         }}
         
         .holders-stats {{
             display: flex;
-            gap: 30px;
-            font-size: 1.1em;
-            font-weight: 600;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            gap: 24px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
         }}
         
         .holders-list {{
@@ -810,13 +795,13 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .holder-rank {{
-            background: linear-gradient(135deg, #FF886D 0%, #FF886D 100%);
-            color: #ffffff;
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9em;
-            margin-right: 15px;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            margin-right: 12px;
             min-width: 50px;
             text-align: center;
         }}
