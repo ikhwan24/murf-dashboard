@@ -588,7 +588,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .murphy-cat {{
-            font-size: 3rem;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
             background: transparent;
         }}
@@ -1543,7 +1545,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             <div class="hero-content">
                 <h1 class="hero-title">
                     <div class="murphy-logo">
-                        <span class="murphy-cat">🐈‍⬛</span>
+                        <img src="https://i.ibb.co.com/DPV7VNzG/Untitled-design-10.png" alt="MURF Cat" class="murphy-cat">
                     </div>
                     MURF Token Dashboard
                 </h1>
