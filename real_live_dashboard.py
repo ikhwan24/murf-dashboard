@@ -14,6 +14,7 @@ import threading
 import time
 from price_history_db import PriceHistoryDB
 from otc_transactions_db import OTCTransactionsDB
+from murf_holders_db import MURFHoldersDB
 
 class RealLiveAPIClient:
     def __init__(self):
@@ -22,6 +23,7 @@ class RealLiveAPIClient:
         self.kta_token = "keeta_anqdilpazdekdu4acw65fj7smltcp26wbrildkqtszqvverljpwpezmd44ssg"
         self.price_db = PriceHistoryDB()
         self.otc_db = OTCTransactionsDB()
+        self.holders_db = MURFHoldersDB()
         
         # Try to get real KTA price from external sources
         self.kta_price_usd = self.get_real_kta_price()
@@ -321,6 +323,10 @@ class RealLiveAPIClient:
                 chart_data['market_caps'][-1] = murf_marketcap
                 print(f"[REFRESH] Updated Chart: Latest MURF Price = ${murf_usd_price:.8f}")
             
+            # Get holders data
+            top_holders = self.holders_db.get_top_holders(20)
+            holder_stats = self.holders_db.get_holder_statistics()
+            
             return {
                 "murf_total_supply": self.murf_total_supply,
                 "murf_circulation": self.murf_circulation,
@@ -339,7 +345,10 @@ class RealLiveAPIClient:
                 "type_7_murf_txs": type_7_txs,
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
-                "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected"
+                "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected",
+                "top_holders": top_holders,
+                "holders_count": holder_stats['total_holders'] if holder_stats else 0,
+                "holders_circulation": holder_stats['total_circulation'] if holder_stats else 0
             }
         except Exception as e:
             print(f"Error getting stats: {e}")
@@ -626,6 +635,95 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-weight: 600;
             -webkit-text-stroke: 0.3px rgba(0,0,0,0.3);
         }}
+        .holders-section {{
+            margin: 20px 30px;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }}
+        
+        .holders-header {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 30px;
+            color: #ffffff;
+        }}
+        
+        .holders-header h3 {{
+            margin: 0 0 10px 0;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }}
+        
+        .holders-stats {{
+            display: flex;
+            gap: 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }}
+        
+        .holders-list {{
+            padding: 20px 30px;
+            max-height: 400px;
+            overflow-y: auto;
+        }}
+        
+        .holder-item {{
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }}
+        
+        .holder-item:last-child {{
+            border-bottom: none;
+        }}
+        
+        .holder-rank {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-right: 15px;
+            min-width: 50px;
+            text-align: center;
+        }}
+        
+        .holder-info {{
+            flex: 1;
+        }}
+        
+        .holder-address {{
+            font-weight: 600;
+            margin-bottom: 5px;
+        }}
+        
+        .holder-link {{
+            color: #667eea;
+            text-decoration: none;
+            font-family: monospace;
+        }}
+        
+        .holder-link:hover {{
+            text-decoration: underline;
+        }}
+        
+        .holder-balance {{
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 3px;
+        }}
+        
+        .holder-tx-count {{
+            font-size: 0.9em;
+            color: #6c757d;
+        }}
+        
         .donation-section {{
             padding: 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1466,6 +1564,20 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             </div>
         </div>
         
+        <!-- MURF Holders Section -->
+        <div class="holders-section">
+            <div class="holders-header">
+                <h3>🏆 Top MURF Holders</h3>
+                <div class="holders-stats">
+                    <span class="holders-count">{stats.get('holders_count', 0):,} Holders</span>
+                    <span class="holders-circulation">{stats.get('holders_circulation', 0):,} MURF in Circulation</span>
+                </div>
+            </div>
+            <div class="holders-list">
+                {self._render_holders_list(stats.get('top_holders', []))}
+            </div>
+        </div>
+        
         <!-- Donation Section -->
         <div class="donation-section">
             <span class="donation-emoji">☕</span>
@@ -1721,6 +1833,294 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             </div>
         </div>
     </footer>
+
+        <div class="holders-section" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+            <h3 style="color: white; margin-bottom: 20px; text-align: center; font-size: 1.5em; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">MURF Token Holders</h3>
+            <div class="holders-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 5px;">Total Holders</div>
+                    <div class="stat-value" style="color: white; font-size: 1.8em; font-weight: bold;">8</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 5px;">Total Supply Held</div>
+                    <div class="stat-value" style="color: white; font-size: 1.8em; font-weight: bold;">362,781,997</div>
+                </div>
+            </div>
+            <div class="holders-list" style="max-height: 400px; overflow-y: auto;">
+                <h4 style="color: white; margin-bottom: 15px;">Top Holders</h4>
+        
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#1</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabzufhile7bp2kqpxy7lon2kxfz2b63huadt674pdic...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">183,000,000 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">4 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#2</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aablwbvss3m27gydf4i3etyw4uqlybs3dkcmjv3rn5ua...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">52,352,151 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">36 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#3</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabqhkbg3p4a4ifvv3rnbhw2e7fab6dhbsfjgmdpcfvr...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">46,000,000 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">2 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#4</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabklv7sycv3elo2fqufjctejbzr7jiispvkyevaqcrb...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">30,000,000 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">1 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#5</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabq6yieqibk6pbs2tvavhkkyejcthtmii6qbo53lfjf...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">28,600,000 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">2 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#6</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabmg2mytmkygks6hi6tgenpoixlebcqggqqh3ansrkj...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">20,000,000 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">1 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#7</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aab5qisr2htldvbqirrxjkbltbszqxih256t7xc5vvrb...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">2,829,846 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">2 transactions</div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#8</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aaboqlpxueqddrrlqyqcgnzt4of6tthajsbvnauqhas3...</div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-received" style="color: white; font-weight: bold;">0 MURF</div>
+                        <div class="holder-transactions" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">1 transactions</div>
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+        
+
+        <div class="comprehensive-holders-section" style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+            <h3 style="color: white; margin-bottom: 20px; text-align: center; font-size: 1.5em; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">MURF Token Holders (Comprehensive Scan)</h3>
+            
+            <div class="holders-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 5px;">Total Holders</div>
+                    <div class="stat-value" style="color: white; font-size: 1.8em; font-weight: bold;">8</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 5px;">Total Supply Held</div>
+                    <div class="stat-value" style="color: white; font-size: 1.8em; font-weight: bold;">16,489,099,850</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 5px;">Total Received</div>
+                    <div class="stat-value" style="color: white; font-size: 1.8em; font-weight: bold;">18,139,099,850</div>
+                </div>
+                <div class="stat-card" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div class="stat-label" style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-bottom: 5px;">Total Sent</div>
+                    <div class="stat-value" style="color: white; font-size: 1.8em; font-weight: bold;">1,650,000,000</div>
+                </div>
+            </div>
+            
+            <div class="holders-list" style="max-height: 500px; overflow-y: auto;">
+                <h4 style="color: white; margin-bottom: 15px;">Top MURF Holders (Comprehensive Scan)</h4>
+        
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#1</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabzufhile7bp2kqpxy7lon2kxfz2b63huadt674pdic...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 200 | 
+                            Received: 9,150,000,000 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">9,150,000,000 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#2</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aablwbvss3m27gydf4i3etyw4uqlybs3dkcmjv3rn5ua...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 1800 | 
+                            Received: 2,617,607,550 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">2,617,607,550 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#3</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabqhkbg3p4a4ifvv3rnbhw2e7fab6dhbsfjgmdpcfvr...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 100 | 
+                            Received: 2,300,000,000 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">2,300,000,000 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#4</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabklv7sycv3elo2fqufjctejbzr7jiispvkyevaqcrb...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 50 | 
+                            Received: 1,500,000,000 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">1,500,000,000 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#5</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabq6yieqibk6pbs2tvavhkkyejcthtmii6qbo53lfjf...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 100 | 
+                            Received: 1,430,000,000 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">1,430,000,000 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#6</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aabmg2mytmkygks6hi6tgenpoixlebcqggqqh3ansrkj...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 50 | 
+                            Received: 1,000,000,000 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">1,000,000,000 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#7</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aab5qisr2htldvbqirrxjkbltbszqxih256t7xc5vvrb...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 100 | 
+                            Received: 141,492,300 | 
+                            Sent: 0
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: white; font-weight: bold; font-size: 1.1em;">141,492,300 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="holder-item" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <div class="holder-info">
+                        <div class="holder-rank" style="color: white; font-weight: bold; font-size: 1.2em;">#8</div>
+                        <div class="holder-address" style="color: rgba(255,255,255,0.8); font-size: 0.9em; word-break: break-all;">keeta_aaboqlpxueqddrrlqyqcgnzt4of6tthajsbvnauqhas3...</div>
+                        <div class="holder-activity" style="color: rgba(255,255,255,0.6); font-size: 0.8em;">
+                            Transactions: 50 | 
+                            Received: 0 | 
+                            Sent: 1,650,000,000
+                        </div>
+                    </div>
+                    <div class="holder-stats" style="text-align: right;">
+                        <div class="holder-balance" style="color: #ff6b6b; font-weight: bold; font-size: 1.1em;">-1,650,000,000 MURF</div>
+                        <div class="holder-status" style="color: rgba(255,255,255,0.8); font-size: 0.8em;">
+                            Active
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="scan-metadata" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9em;">
+                        <strong>Scan Info:</strong> 20,550 blocks analyzed in 187.6s | 
+                        <strong>Rate:</strong> 109.5 blocks/sec | 
+                        <strong>Date:</strong> 2025-10-01T03:06:37.610210
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+        
 </body>
 </html>
         """
@@ -1934,6 +2334,46 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         html += '</div>'
         return html
     
+    def _render_holders_list(self, holders):
+        """Render top MURF holders list"""
+        if not holders:
+            return '<div class="holder-item">No holders data available</div>'
+        
+        html = ''
+        for holder in holders:
+            address = holder.get('address', 'N/A')
+            balance = holder.get('current_balance', 0)
+            rank = holder.get('rank', 0)
+            tx_count = holder.get('tx_count', 0)
+            
+            # Format balance
+            if balance > 1000000:
+                balance_str = f"{balance/1000000:.2f}M MURF"
+            elif balance > 1000:
+                balance_str = f"{balance/1000:.2f}K MURF"
+            else:
+                balance_str = f"{balance:,.0f} MURF"
+            
+            # Create explorer link
+            explorer_link = f"https://explorer.keeta.com/address/{address}"
+            
+            html += f'''
+            <div class="holder-item">
+                <div class="holder-rank">#{rank}</div>
+                <div class="holder-info">
+                    <div class="holder-address">
+                        <a href="{explorer_link}" target="_blank" class="holder-link">
+                            {address[:30]}...
+                        </a>
+                    </div>
+                    <div class="holder-balance">{balance_str}</div>
+                    <div class="holder-tx-count">{tx_count} transactions</div>
+                </div>
+            </div>
+            '''
+        
+        return html
+    
     def serve_stats(self):
         """Serve statistics as JSON"""
         stats = self.api_client.get_token_statistics()
@@ -1950,10 +2390,10 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
 def main():
     PORT = int(os.environ.get('PORT', 5000))
     
-    print("🚀 Starting Real Live MURF Token Dashboard... (VERSION 2.0 - OTC FOCUSED)")
+    print("Starting Real Live MURF Token Dashboard... (VERSION 2.0 - OTC FOCUSED)")
     print(f"[DATA] Dashboard available at: http://localhost:{PORT}")
     print("[REFRESH] Manual refresh - Chart updates only when new OTC transactions found")
-    print("📡 Fetching REAL data from Keeta API")
+    print("Fetching REAL data from Keeta API")
     print("[WARNING]  WARNING: Prices are estimates, not live trading prices")
     print("Press Ctrl+C to stop")
     

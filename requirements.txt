@@ -1,5 +1,2 @@
-requests
-matplotlib
-pandas
-numpy
-flask
+flask==2.3.3
+requests==2.31.0
