@@ -530,19 +530,19 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background: #f8fafc;
-            color: #1e293b;
+            background: #1a1a1a;
+            color: #ffffff;
             min-height: 100vh;
             line-height: 1.6;
         }}
         
         /* Hero Section */
         .hero-section {{
-            background: #ffffff;
+            background: #2c2c2c;
             padding: 40px 20px;
             text-align: center;
-            color: #1e293b;
-            border-bottom: 1px solid #e2e8f0;
+            color: #ffffff;
+            border-bottom: 1px solid #404040;
         }}
         
         .hero-section::before {{
@@ -565,14 +565,14 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-size: 2.5rem;
             font-weight: 600;
             margin: 0 0 16px 0;
-            color: #1e293b;
+            color: #ffffff;
             animation: fadeInUp 0.8s ease-out;
         }}
         
         .hero-subtitle {{
             font-size: 1.1rem;
             margin: 0 0 40px 0;
-            color: #64748b;
+            color: #FF886D;
             animation: fadeInUp 0.8s ease-out 0.2s both;
         }}
         
@@ -708,22 +708,22 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             padding: 30px;
         }}
         .stat-card {{
-            background: #ffffff;
+            background: #2c2c2c;
             border-radius: 8px;
             padding: 24px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #404040;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             position: relative;
         }}
         .stat-card:hover {{
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            border-color: #cbd5e1;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border-color: #FF886D;
         }}
         .stat-label {{
             font-size: 0.875rem;
-            color: #000000;
+            color: #FF886D;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -734,39 +734,39 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         .stat-value {{
             font-size: 2rem;
             font-weight: 800;
-            color: #000000;
+            color: #ffffff;
             margin-bottom: 4px;
             position: relative;
             z-index: 1;
         }}
         .stat-sub {{
             font-size: 0.875rem;
-            color: #1f2937;
+            color: #cccccc;
             position: relative;
             z-index: 1;
             font-weight: 600;
         }}
         .holders-section {{
             margin: 20px 30px;
-            background: #ffffff;
+            background: #2c2c2c;
             border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #404040;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }}
         
         .holders-header {{
-            background: #f8fafc;
+            background: #FF886D;
             padding: 20px 24px;
-            color: #1e293b;
-            border-bottom: 1px solid #e2e8f0;
+            color: #ffffff;
+            border-bottom: 1px solid #404040;
         }}
         
         .holders-header h3 {{
             margin: 0 0 8px 0;
             font-size: 1.25rem;
             font-weight: 600;
-            color: #1e293b;
+            color: #ffffff;
         }}
         
         .holders-stats {{
@@ -774,7 +774,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             gap: 24px;
             font-size: 0.875rem;
             font-weight: 500;
-            color: #64748b;
+            color: #ffffff;
         }}
         
         .holders-list {{
