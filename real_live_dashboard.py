@@ -576,7 +576,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         .murphy-logo {{
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #2c2c2c 0%, #404040 100%);
+            background: transparent;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -584,11 +584,14 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-size: 2.5rem;
             border: 3px solid #FF886D;
             box-shadow: 0 4px 12px rgba(255, 136, 109, 0.3);
+            overflow: hidden;
         }}
         
         .murphy-cat {{
             font-size: 2.5rem;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            background: transparent;
+            mix-blend-mode: multiply;
         }}
         
         .hero-subtitle {{
@@ -1541,7 +1544,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             <div class="hero-content">
                 <h1 class="hero-title">
                     <div class="murphy-logo">
-                        <span class="murphy-cat">🐱</span>
+                        <span class="murphy-cat">🐈</span>
                     </div>
                     MURF Token Dashboard
                 </h1>
