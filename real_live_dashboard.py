@@ -15,6 +15,7 @@ import time
 from price_history_db import PriceHistoryDB
 from otc_transactions_db import OTCTransactionsDB
 from murf_holders_db import MURFHoldersDB
+from smart_holders_manager import SmartHoldersManager
 
 class RealLiveAPIClient:
     def __init__(self):
@@ -24,6 +25,7 @@ class RealLiveAPIClient:
         self.price_db = PriceHistoryDB()
         self.otc_db = OTCTransactionsDB()
         self.holders_db = MURFHoldersDB()
+        self.smart_holders = SmartHoldersManager()
         
         # Try to get real KTA price from external sources
         self.kta_price_usd = self.get_real_kta_price()
@@ -213,6 +215,8 @@ class RealLiveAPIClient:
             except Exception as api_error:
                 print(f"[ERROR] API Error: {api_error}")
                 print("[DATA] Using database fallback for data")
+                # Force analysis to None to ensure database fallback
+                analysis = None
             
             # Initialize variables
             type_7_txs = []
@@ -232,12 +236,26 @@ class RealLiveAPIClient:
             db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
             print(f"[DATA] Database OTC transactions: {len(db_otc_transactions)}")
             
-            # Always use database data for comprehensive OTC history
+            # Debug: Show database status
+            if db_otc_transactions:
+                print(f"[DATABASE] Found {len(db_otc_transactions)} OTC transactions in database")
+                print(f"[DATABASE] Latest transaction: {db_otc_transactions[0].get('tx_hash', 'N/A')[:20]}...")
+            else:
+                print("[DATABASE] No OTC transactions found in database")
+            
+            # PRIORITY: Always use database data for comprehensive OTC history
+            # This ensures OTC data is always available even when API fails
             if db_otc_transactions:
                 print(f"[DATA] Using database OTC data: {len(db_otc_transactions)} transactions")
                 type_7_txs = db_otc_transactions
+                # Update last trade info from database
+                if type_7_txs:
+                    latest_db_tx = type_7_txs[0]
+                    last_trade_hash = latest_db_tx.get('tx_hash', 'N/A')
+                    last_trade_time = latest_db_tx.get('timestamp', 'N/A')
+                    print(f"[DATABASE] Latest OTC from DB: {last_trade_hash[:20]}... at {last_trade_time}")
             elif type_7_txs:
-                print(f"[DEBUG] Using API OTC data: {len(type_7_txs)} transactions")
+                print(f"[API] Using API OTC data: {len(type_7_txs)} transactions")
             else:
                 print("[WARNING] No OTC transactions found in API or database")
             
@@ -323,10 +341,19 @@ class RealLiveAPIClient:
                 chart_data['market_caps'][-1] = murf_marketcap
                 print(f"[REFRESH] Updated Chart: Latest MURF Price = ${murf_usd_price:.8f}")
             
-            # Get holders data
-            top_holders = self.holders_db.get_top_holders(20)
-            holder_stats = self.holders_db.get_holder_statistics()
+            # Get holders data using Smart Holders Manager (DISABLED for debugging)
+            try:
+                # Temporarily disable Smart Holders Manager to fix OTC fallback
+                print("[DEBUG] Using basic holders data (Smart Holders Manager disabled)")
+                top_holders = self.holders_db.get_top_holders(20)
+                holder_stats = self.holders_db.get_holder_statistics()
+            except Exception as holders_error:
+                print(f"[ERROR] Holders data error: {holders_error}")
+                # Fallback to basic holders data
+                top_holders = self.holders_db.get_top_holders(20)
+                holder_stats = self.holders_db.get_holder_statistics()
             
+            print(f"[RETURN] Returning stats with {len(type_7_txs)} OTC transactions")
             return {
                 "murf_total_supply": self.murf_total_supply,
                 "murf_circulation": self.murf_circulation,
@@ -336,26 +363,34 @@ class RealLiveAPIClient:
                 "murf_fdv": murf_fdv,
                 "murf_marketcap": murf_marketcap,
                 "exchange_rate_murf": exchange_rate_murf,
-                "total_blocks": analysis['total_blocks'],
-                "recent_activity": analysis['recent_activity'],
-                "last_update": analysis['last_update'],
+                "total_blocks": analysis.get('total_blocks', 0) if analysis else 0,
+                "recent_activity": analysis.get('recent_activity', []) if analysis else [],
+                "last_update": analysis.get('last_update', datetime.now().isoformat()) if analysis else datetime.now().isoformat(),
                 "last_trade_hash": last_trade_hash,
                 "last_trade_time": last_trade_time,
                 "type_7_count": len(type_7_txs),
                 "type_7_murf_txs": type_7_txs,
+                "type_7_txs": type_7_txs,  # Add this for compatibility
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
                 "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected",
                 "top_holders": top_holders,
-                "holders_count": holder_stats['total_holders'] if holder_stats else 0,
-                "holders_circulation": holder_stats['total_circulation'] if holder_stats else 0
+                "holders_count": holder_stats.get('total_holders', 0) if holder_stats else 0,
+                "holders_circulation": holder_stats.get('total_circulation', 0) if holder_stats else 0
             }
         except Exception as e:
+            import traceback
             print(f"Error getting stats: {e}")
+            print(f"Full traceback:")
+            traceback.print_exc()
             return self._get_default_stats()
     
     def _get_default_stats(self):
         """Default stats when no data available"""
+        # Get OTC transactions from database for fallback
+        db_otc_transactions = self.otc_db.get_latest_otc_transactions(limit=50)
+        print(f"[FALLBACK] Using database OTC transactions: {len(db_otc_transactions)}")
+        
         return {
             "murf_total_supply": self.murf_total_supply,
             "murf_circulation": self.murf_circulation,
@@ -368,8 +403,16 @@ class RealLiveAPIClient:
             "total_blocks": 0,
             "recent_activity": [],
             "last_update": datetime.now().isoformat(),
-            "data_source": "Default Values",
-            "api_status": "[ERROR] No Data"
+            "data_source": "Database Fallback",
+            "api_status": "[ERROR] No Data",
+            "type_7_txs": db_otc_transactions,  # Include OTC transactions from database
+            "type_7_murf_txs": db_otc_transactions,  # Include OTC transactions from database
+            "chart_data": self.price_db.get_chart_data(50),
+            "latest_trade_hash": db_otc_transactions[0].get('tx_hash', 'N/A') if db_otc_transactions else 'N/A',
+            "latest_trade_time": db_otc_transactions[0].get('timestamp', 'N/A') if db_otc_transactions else 'N/A',
+            "top_holders": self.holders_db.get_top_holders(20),
+            "holders_count": 0,
+            "holders_circulation": 0
         }
 
 class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
@@ -2107,9 +2150,14 @@ def main():
     print("Starting Real Live MURF Token Dashboard... (VERSION 2.0 - OTC FOCUSED)")
     print(f"[DATA] Dashboard available at: http://localhost:{PORT}")
     print("[REFRESH] Manual refresh - Chart updates only when new OTC transactions found")
+    print("[HOLDERS] Smart Holders Manager - Auto-refresh hourly, tracks OTC participants")
     print("Fetching REAL data from Keeta API")
     print("[WARNING]  WARNING: Prices are estimates, not live trading prices")
     print("Press Ctrl+C to stop")
+    
+    # Start background holders refresh
+    client = RealLiveAPIClient()
+    client.smart_holders.start_background_refresh()
     
     with socketserver.TCPServer(("0.0.0.0", PORT), RealLiveDashboardHandler) as httpd:
         print(f"[OK] Server running on port {PORT}")

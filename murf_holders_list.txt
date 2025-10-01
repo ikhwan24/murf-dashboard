@@ -1,0 +1,117 @@
+MURF Token Holders List
+========================
+Total Holders: 1,528
+Total Circulation: 59,339,104,427 MURF
+Scan Date: 2025-10-01
+Source: Airdrop wallet analysis
+
+TOP 20 MURF HOLDERS:
+====================
+
+1. keeta_aabrsjjf6ocqua3bfakv7lz6co4ncgh5zib335v5xrbubaa5zvs336d3eys74ri
+   Balance: 333,355,613 MURF
+   Received: 333,355,613 MURF
+   TX Count: 2
+
+2. keeta_aabn2skxxkwtihowdyfur5apfwh5gc7pgwfoo4gfc7jh46vpl3qypmkmqesuvny
+   Balance: 327,126,841 MURF
+   Received: 327,126,841 MURF
+   TX Count: 2
+
+3. keeta_aabqpsdj7gerskybprwdmbrphq42xwmlklu3sb6vl4aa3ftfck6d6opclp73zli
+   Balance: 301,848,110 MURF
+   Received: 301,848,110 MURF
+   TX Count: 2
+
+4. keeta_aabf46hrtsf6ovdzqh3uykclbgwtyqaohqjvf34mdr4ine63hmszvlongif72xi
+   Balance: 268,228,665 MURF
+   Received: 268,228,665 MURF
+   TX Count: 2
+
+5. keeta_aabpqke44eiuc45nmolg3hotjrvn25tpmxswfoiesodiznjkbef65c3shk6leia
+   Balance: 262,664,892 MURF
+   Received: 262,664,892 MURF
+   TX Count: 2
+
+6. keeta_aabzgkpwvzchshlgwmvzsceaenqvuvzqdhur5n76fbktpv5tqmgl6acg4lpl4uy
+   Balance: 262,658,621 MURF
+   Received: 262,658,621 MURF
+   TX Count: 2
+
+7. keeta_aabjpdqv6bjgjtoyad2unufg6lifvqvwq4rfwrdjy26kke4p3xjhp5l5neyytqi
+   Balance: 262,657,996 MURF
+   Received: 262,657,996 MURF
+   TX Count: 2
+
+8. keeta_aabqprux5bexvop4tagimqxljmwmrvkmb6ocvkhhxxb7u2pnwr26xqjtk5qibgq
+   Balance: 262,655,404 MURF
+   Received: 262,655,404 MURF
+   TX Count: 2
+
+9. keeta_aaby47uwmo3mhbb433llco4vau4gki4e2o2t7c3rre423jrpy2fenq277n55lji
+   Balance: 262,649,119 MURF
+   Received: 262,649,119 MURF
+   TX Count: 2
+
+10. keeta_aabbdx6keelo3wmiyx2ztrjg4rmkjyrj5asebgh3ybvmsxyqtzn7wwz5ipn4dka
+    Balance: 262,637,907 MURF
+    Received: 262,637,907 MURF
+    TX Count: 2
+
+11. keeta_aabtpq6qrtcnumxjyz4ua5ovcx2wdx43j6hqo2fq7izq3i5cgioyiohc326ffwi
+    Balance: 262,624,766 MURF
+    Received: 262,624,766 MURF
+    TX Count: 2
+
+12. keeta_aabbalpnxp4mr4tqkiaqn3vyjyym7pfbzxezfmrgnlkxmwehivmtauuzk7jixmq
+    Balance: 262,615,173 MURF
+    Received: 262,615,173 MURF
+    TX Count: 2
+
+13. keeta_aabo5hypqmjd2eydrmkndlr2uecyxczxnpiqgij6slrzovz6j7qjamqnfv2idla
+    Balance: 260,587,829 MURF
+    Received: 260,587,829 MURF
+    TX Count: 2
+
+14. keeta_aabzmnjgwzvsbgaq4droqqh4pec6tppuc2hpir7tlm7yogk5ystbkhwqtw67q7y
+    Balance: 260,582,952 MURF
+    Received: 260,582,952 MURF
+    TX Count: 2
+
+15. keeta_aabb4ujqxczuych5lxqc4bfumqee6zgi7rfjvymei5d4prr3njn7et7lnumlw6a
+    Balance: 260,573,242 MURF
+    Received: 260,573,242 MURF
+    TX Count: 2
+
+16. keeta_aab6v4hkdplnsz4a7fixfyanlhpza7wvcv3iozoclhsklydh3tbaisxuhadnniy
+    Balance: 260,572,666 MURF
+    Received: 260,572,666 MURF
+    TX Count: 2
+
+17. keeta_aabgp7vj7ug2fobn3zaxz453uzb3fwixpwtv3v2vz6v64o6a2miw2q2i26556pa
+    Balance: 260,552,468 MURF
+    Received: 260,552,468 MURF
+    TX Count: 2
+
+18. keeta_aabfdtme4znerun5ly4gofc5v532pykmb64uxbmg3k4mxksammpqae3fs3vs4ti
+    Balance: 259,488,255 MURF
+    Received: 259,488,255 MURF
+    TX Count: 2
+
+19. keeta_aabvrhivtruo7a7vryfffruekg3rufagydxfdpyy7u567cupmhxgd7fxfr23viq
+    Balance: 258,449,808 MURF
+    Received: 258,449,808 MURF
+    TX Count: 2
+
+20. keeta_aabs4zhpkgnfqvmfq33mnirrlht3agqteb527srqul5vdrkplu66opj4mjumddi
+    Balance: 256,335,640 MURF
+    Received: 256,335,640 MURF
+    TX Count: 2
+
+NOTES:
+======
+- All addresses are from airdrop wallet analysis
+- Total 1,528 unique holders identified
+- Data sourced from airdrop wallet: keeta_aablrt5p4in4mehyxxunow3kp4c7rs2v4mh6v4z6qtfnt7sw5cxtw4r3b5oxtwi
+- Scan completed: 2025-10-01
+- Database: murf_holders.db

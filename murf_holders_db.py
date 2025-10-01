@@ -116,24 +116,42 @@ class MURFHoldersDB:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT total_holders, total_murf_circulation, total_airdropped, last_updated
-            FROM holder_statistics 
-            ORDER BY id DESC 
-            LIMIT 1
-        ''')
-        
-        result = cursor.fetchone()
-        conn.close()
-        
-        if result:
+        try:
+            # Calculate statistics from murf_holders table
+            cursor.execute('''
+                SELECT 
+                    COUNT(*) as total_holders,
+                    SUM(current_balance) as total_circulation,
+                    COUNT(CASE WHEN is_airdrop_recipient = 1 THEN 1 END) as total_airdropped
+                FROM murf_holders 
+                WHERE current_balance > 0
+            ''')
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if result:
+                return {
+                    'total_holders': result[0] or 0,
+                    'total_circulation': result[1] or 0,
+                    'total_airdropped': result[2] or 0,
+                    'last_updated': datetime.now().isoformat()
+                }
+            else:
+                return {
+                    'total_holders': 0,
+                    'total_circulation': 0,
+                    'total_airdropped': 0,
+                    'last_updated': datetime.now().isoformat()
+                }
+        except Exception as e:
+            print(f"Error getting holder statistics: {e}")
             return {
-                'total_holders': result[0],
-                'total_circulation': result[1],
-                'total_airdropped': result[2],
-                'last_updated': result[3]
+                'total_holders': 0,
+                'total_circulation': 0,
+                'total_airdropped': 0,
+                'last_updated': datetime.now().isoformat()
             }
-        return None
     
     def get_holder_by_address(self, address):
         """Get specific holder by address"""
