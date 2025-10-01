@@ -104,7 +104,7 @@ class RealLiveAPIClient:
             if 'voteStaple' in entry and 'blocks' in entry['voteStaple']:
                 blocks = entry['voteStaple']['blocks']
                 
-                for block in blocks:
+                for j, block in enumerate(blocks):
                     if 'operations' in block:
                         operations = block['operations']
                         total_blocks += 1
