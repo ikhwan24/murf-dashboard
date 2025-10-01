@@ -171,11 +171,16 @@ class RealLiveAPIClient:
                                 print(f"     Receiver (Account): {account_addr[:20]}...")
                                 print(f"     Different: {from_addr != account_addr}")
                                 
-                                # Simpan ke database
-                                self.otc_db.save_otc_transaction(otc_tx_data)
-                                
-                                # Tambahkan ke list
-                                otc_transactions.append(otc_tx_data)
+                                # VALIDATION: Only save if MURF amount > 0 (real MURF OTC)
+                                if murf_amount > 0:
+                                    print(f"   [SAVE] Valid MURF OTC: {murf_amount:,.0f} MURF")
+                                    # Simpan ke database
+                                    self.otc_db.save_otc_transaction(otc_tx_data)
+                                    
+                                    # Tambahkan ke list
+                                    otc_transactions.append(otc_tx_data)
+                                else:
+                                    print(f"   [SKIP] Not MURF OTC: {murf_amount} MURF (token: {related_op.get('token', 'N/A')[:20]}...)")
                 
                 # Juga simpan activity untuk display
                 if 'votes' in entry['voteStaple']:
