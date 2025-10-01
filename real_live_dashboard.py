@@ -1669,17 +1669,6 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="stat-sub">Circulating Market Cap</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-label">Total Blocks</div>
-                <div class="stat-value">{stats['total_blocks']}</div>
-                <div class="stat-sub">From Keeta API</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-label">Type 7 MURF Trades</div>
-                <div class="stat-value">{stats.get('type_7_count', 0)}</div>
-                <div class="stat-sub">OTC Transactions Found</div>
-            </div>
             
             <div class="stat-card">
                 <div class="stat-label">OTC Volume (1H)</div>
@@ -1699,13 +1688,6 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="stat-sub">KTA / {stats.get('otc_volume_total_murf', 0):,.0f} MURF</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-label">Last Type 7 Trade</div>
-                <div class="stat-value">{stats.get('last_trade_hash', 'N/A')[:20]}...</div>
-                <div class="stat-sub">
-                    {stats.get('last_trade_time', 'N/A')[:19] if stats.get('last_trade_hash') != 'N/A' else 'No trades found'}
-                </div>
-            </div>
         </div>
         
         <!-- MURF Holders Section -->
