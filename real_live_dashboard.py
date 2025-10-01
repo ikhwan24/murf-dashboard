@@ -9,7 +9,7 @@ import socketserver
 import json
 import urllib.request
 import urllib.parse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import threading
 import time
 from price_history_db import PriceHistoryDB
@@ -209,7 +209,7 @@ class RealLiveAPIClient:
             # Get all OTC transactions from database
             all_otc = self.otc_db.get_latest_otc_transactions(limit=1000)  # Get more for volume calculation
             
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
             one_hour_ago = now - timedelta(hours=1)
             one_day_ago = now - timedelta(days=1)
             
