@@ -9,7 +9,7 @@ import socketserver
 import json
 import urllib.request
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, timedelta
 import threading
 import time
 from price_history_db import PriceHistoryDB
@@ -203,6 +203,72 @@ class RealLiveAPIClient:
             'type_7_murf_txs': otc_transactions
         }
     
+    def get_otc_volume_stats(self):
+        """Get OTC volume statistics"""
+        try:
+            # Get all OTC transactions from database
+            all_otc = self.otc_db.get_latest_otc_transactions(limit=1000)  # Get more for volume calculation
+            
+            now = datetime.now()
+            one_hour_ago = now - timedelta(hours=1)
+            one_day_ago = now - timedelta(days=1)
+            
+            # Calculate volumes
+            total_volume_kta = 0
+            total_volume_murf = 0
+            one_hour_volume_kta = 0
+            one_hour_volume_murf = 0
+            one_day_volume_kta = 0
+            one_day_volume_murf = 0
+            
+            for tx in all_otc:
+                kta_amount = tx.get('kta_amount', 0)
+                murf_amount = tx.get('murf_amount', 0)
+                timestamp_str = tx.get('timestamp', '')
+                
+                # Add to total volume
+                total_volume_kta += kta_amount
+                total_volume_murf += murf_amount
+                
+                # Parse timestamp for time-based calculations
+                try:
+                    if timestamp_str and timestamp_str != 'N/A':
+                        tx_time = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                        
+                        # Check if within 1 hour
+                        if tx_time >= one_hour_ago:
+                            one_hour_volume_kta += kta_amount
+                            one_hour_volume_murf += murf_amount
+                        
+                        # Check if within 1 day
+                        if tx_time >= one_day_ago:
+                            one_day_volume_kta += kta_amount
+                            one_day_volume_murf += murf_amount
+                except:
+                    # If timestamp parsing fails, skip time-based calculations
+                    pass
+            
+            return {
+                'total_volume_kta': total_volume_kta,
+                'total_volume_murf': total_volume_murf,
+                'one_hour_volume_kta': one_hour_volume_kta,
+                'one_hour_volume_murf': one_hour_volume_murf,
+                'one_day_volume_kta': one_day_volume_kta,
+                'one_day_volume_murf': one_day_volume_murf,
+                'total_transactions': len(all_otc)
+            }
+        except Exception as e:
+            print(f"[ERROR] Volume calculation error: {e}")
+            return {
+                'total_volume_kta': 0,
+                'total_volume_murf': 0,
+                'one_hour_volume_kta': 0,
+                'one_hour_volume_murf': 0,
+                'one_day_volume_kta': 0,
+                'one_day_volume_murf': 0,
+                'total_transactions': 0
+            }
+
     def get_token_statistics(self):
         """Get real token statistics"""
         try:
@@ -358,6 +424,10 @@ class RealLiveAPIClient:
                 top_holders = self.holders_db.get_top_holders(20)
                 holder_stats = self.holders_db.get_holder_statistics()
             
+            # Get OTC volume statistics
+            volume_stats = self.get_otc_volume_stats()
+            print(f"[VOLUME] 1H: {volume_stats['one_hour_volume_kta']:.2f} KTA, 1D: {volume_stats['one_day_volume_kta']:.2f} KTA, Total: {volume_stats['total_volume_kta']:.2f} KTA")
+            
             print(f"[RETURN] Returning stats with {len(type_7_txs)} OTC transactions")
             return {
                 "murf_total_supply": self.murf_total_supply,
@@ -381,7 +451,15 @@ class RealLiveAPIClient:
                 "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected",
                 "top_holders": top_holders,
                 "holders_count": holder_stats.get('total_holders', 0) if holder_stats else 0,
-                "holders_circulation": holder_stats.get('total_circulation', 0) if holder_stats else 0
+                "holders_circulation": holder_stats.get('total_circulation', 0) if holder_stats else 0,
+                # OTC Volume Statistics
+                "otc_volume_1h_kta": volume_stats['one_hour_volume_kta'],
+                "otc_volume_1h_murf": volume_stats['one_hour_volume_murf'],
+                "otc_volume_1d_kta": volume_stats['one_day_volume_kta'],
+                "otc_volume_1d_murf": volume_stats['one_day_volume_murf'],
+                "otc_volume_total_kta": volume_stats['total_volume_kta'],
+                "otc_volume_total_murf": volume_stats['total_volume_murf'],
+                "otc_total_transactions": volume_stats['total_transactions']
             }
         except Exception as e:
             import traceback
@@ -1601,6 +1679,24 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="stat-label">Type 7 MURF Trades</div>
                 <div class="stat-value">{stats.get('type_7_count', 0)}</div>
                 <div class="stat-sub">OTC Transactions Found</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">OTC Volume (1H)</div>
+                <div class="stat-value">{stats.get('otc_volume_1h_kta', 0):.2f}</div>
+                <div class="stat-sub">KTA / {stats.get('otc_volume_1h_murf', 0):,.0f} MURF</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">OTC Volume (1D)</div>
+                <div class="stat-value">{stats.get('otc_volume_1d_kta', 0):.2f}</div>
+                <div class="stat-sub">KTA / {stats.get('otc_volume_1d_murf', 0):,.0f} MURF</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">OTC Volume (Total)</div>
+                <div class="stat-value">{stats.get('otc_volume_total_kta', 0):.2f}</div>
+                <div class="stat-sub">KTA / {stats.get('otc_volume_total_murf', 0):,.0f} MURF</div>
             </div>
             
             <div class="stat-card">
