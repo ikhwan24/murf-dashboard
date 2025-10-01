@@ -839,11 +839,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         
         .donation-section {{
             padding: 30px;
-            background: linear-gradient(135deg, #0BAA1B 0%, #0B6111 100%);
+            background: #FF886D;
             margin: 20px 30px;
             border-radius: 15px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(11, 170, 27, 0.3);
+            box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3);
         }}
         
         .donation-title {{
