@@ -1460,11 +1460,6 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             margin-bottom: 4px;
         }}
         
-        .stat-value {{
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-        }}
         
         .chart-container {{
             position: relative;
