@@ -772,7 +772,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .holders-header {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF886D 0%, #FF886D 100%);
             padding: 20px 30px;
             color: #ffffff;
         }}
@@ -810,7 +810,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         
         .holder-rank {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF886D 0%, #FF886D 100%);
             color: #ffffff;
             padding: 8px 12px;
             border-radius: 20px;
