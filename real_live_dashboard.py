@@ -2355,7 +2355,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 balance_str = f"{balance:,.0f} MURF"
             
             # Create explorer link
-            explorer_link = f"https://explorer.keeta.com/address/{address}"
+            explorer_link = f"https://explorer.keeta.com/account/{address}"
             
             html += f'''
             <div class="holder-item">
