@@ -723,28 +723,28 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         }}
         .stat-label {{
             font-size: 0.875rem;
-            color: #64748b;
+            color: #374151;
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-weight: 500;
+            font-weight: 600;
             position: relative;
             z-index: 1;
         }}
         .stat-value {{
             font-size: 2rem;
-            font-weight: 600;
-            color: #1e293b;
+            font-weight: 700;
+            color: #111827;
             margin-bottom: 4px;
             position: relative;
             z-index: 1;
         }}
         .stat-sub {{
             font-size: 0.875rem;
-            color: #64748b;
+            color: #4b5563;
             position: relative;
             z-index: 1;
-            font-weight: 400;
+            font-weight: 500;
         }}
         .holders-section {{
             margin: 20px 30px;
