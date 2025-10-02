@@ -124,32 +124,54 @@ class RealLiveAPIClient:
                 operations = block['operations']
                 total_blocks += 1
                 
-                # Cari Type 7 KTA operations
+                # Cari OTC operations (Type 7 KTA atau Type 7 MURF)
                 for op in operations:
                     op_type = op.get('type')
                     token = op.get('token', '')
                     
-                    # Type 7 dengan KTA token
-                    if op_type == 7 and kta_token in token:
-                        kta_amount = self.hex_to_decimal(op.get('amount', '0x0')) / 1e18
+                    # Pattern 1: Type 7 dengan KTA token (KTA -> MURF)
+                    # Pattern 2: Type 7 dengan MURF token (MURF -> KTA)
+                    if op_type == 7 and (kta_token in token or murf_token in token):
                         from_addr = op.get('from', 'N/A')
                         exact = op.get('exact', False)
                         
-                        print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
+                        # Determine which pattern we have
+                        is_kta_seller = kta_token in token
+                        is_murf_seller = murf_token in token
                         
-                        # Cari related Type 0 MURF dalam block yang sama atau block sebelumnya
-                        murf_amount = 0
-                        to_addr = 'N/A'
+                        if is_kta_seller:
+                            # Pattern 1: KTA -> MURF (Type 7 KTA + Type 0 MURF)
+                            kta_amount = self.hex_to_decimal(op.get('amount', '0x0')) / 1e18
+                            print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
+                            
+                            # Look for Type 0 MURF
+                            murf_amount = 0
+                            to_addr = 'N/A'
+                            for related_op in operations:
+                                if (related_op.get('type') == 0 and 
+                                    related_op.get('token') == murf_token):
+                                    murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
+                                    murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
+                                    to_addr = related_op.get('to', 'N/A')
+                                    print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
+                                    break
                         
-                        # Cari dalam block yang sama dulu
-                        for related_op in operations:
-                            if (related_op.get('type') == 0 and 
-                                related_op.get('token') == murf_token):
-                                murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
-                                murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
-                                to_addr = related_op.get('to', 'N/A')
-                                print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
-                                break
+                        elif is_murf_seller:
+                            # Pattern 2: MURF -> KTA (Type 7 MURF + Type 0 KTA)
+                            murf_amount_raw = self.hex_to_decimal(op.get('amount', '0x0'))
+                            murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
+                            print(f"[OK] Found Type 7 MURF: {block.get('$hash', 'N/A')[:20]}... MURF: {murf_amount:.0f}")
+                            
+                            # Look for Type 0 KTA
+                            kta_amount = 0
+                            to_addr = 'N/A'
+                            for related_op in operations:
+                                if (related_op.get('type') == 0 and 
+                                    related_op.get('token') == kta_token):
+                                    kta_amount = self.hex_to_decimal(related_op.get('amount', '0x0')) / 1e18
+                                    to_addr = related_op.get('to', 'N/A')
+                                    print(f"   [OK] Found Type 0 KTA: {kta_amount:.2f} KTA")
+                                    break
                         
                         # Jika tidak ada dalam block yang sama, cari di block sebelumnya
                         if murf_amount == 0 and j > 0:
