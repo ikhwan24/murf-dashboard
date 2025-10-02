@@ -192,6 +192,17 @@ class RealLiveAPIClient:
                             # Simpan ke database
                             self.otc_db.save_otc_transaction(otc_tx_data)
                             
+                            # REAL-TIME: Add OTC participants (seller/buyer) to holders
+                            try:
+                                print(f"   [HOLDERS] Adding OTC participants: {from_addr[:20]}... -> {account_addr[:20]}...")
+                                new_holders_added = self.smart_holders.update_holders_from_otc()
+                                if new_holders_added > 0:
+                                    print(f"   [HOLDERS] Added {new_holders_added} new holders from OTC")
+                                else:
+                                    print(f"   [HOLDERS] No new holders (participants already tracked)")
+                            except Exception as holders_error:
+                                print(f"   [ERROR] Failed to add OTC participants: {holders_error}")
+                            
                             # Tambahkan ke list
                             otc_transactions.append(otc_tx_data)
                         else:
