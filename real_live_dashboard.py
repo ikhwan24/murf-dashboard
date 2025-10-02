@@ -569,6 +569,114 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             line-height: 1.6;
         }}
         
+        /* Floating Donation Banner */
+        .floating-banner {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FF886D 0%, #FF6B47 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(255, 136, 109, 0.4);
+            z-index: 1000;
+            max-width: 320px;
+            font-family: 'Inter', sans-serif;
+            animation: slideInRight 0.8s ease-out, gentlePulse 3s infinite 2s;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }}
+        
+        .floating-banner:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(255, 136, 109, 0.5);
+            border-color: rgba(255, 255, 255, 0.4);
+        }}
+        
+        .banner-close {{
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        
+        .banner-close:hover {{
+            opacity: 1;
+        }}
+        
+        .banner-icon {{
+            font-size: 1.2em;
+            margin-right: 8px;
+        }}
+        
+        .banner-title {{
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }}
+        
+        .banner-text {{
+            font-size: 0.8rem;
+            opacity: 0.95;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }}
+        
+        .banner-cta {{
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: underline;
+            opacity: 0.9;
+        }}
+        
+        @keyframes slideInRight {{
+            from {{
+                transform: translateX(100%);
+                opacity: 0;
+            }}
+            to {{
+                transform: translateX(0);
+                opacity: 1;
+            }}
+        }}
+        
+        @keyframes gentlePulse {{
+            0%, 100% {{
+                transform: scale(1);
+                box-shadow: 0 8px 25px rgba(255, 136, 109, 0.4);
+            }}
+            50% {{
+                transform: scale(1.02);
+                box-shadow: 0 12px 30px rgba(255, 136, 109, 0.5);
+            }}
+        }}
+        
+        /* Hide banner on mobile for better UX */
+        @media (max-width: 768px) {{
+            .floating-banner {{
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px;
+                max-width: none;
+                animation: none;
+            }}
+        }}
+        
         /* Hero Section */
         .hero-section {{
             background: #2c2c2c;
@@ -1554,6 +1662,20 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
     </style>
 </head>
 <body>
+    <!-- Floating Donation Banner -->
+    <div class="floating-banner" id="donationBanner" onclick="scrollToDonation()">
+        <button class="banner-close" onclick="event.stopPropagation(); closeBanner()">&times;</button>
+        <div class="banner-title">
+            <span class="banner-icon">💖</span>
+            Enjoying this dashboard?
+        </div>
+        <div class="banner-text">
+            Help support development and server costs with a small donation!
+        </div>
+        <div class="banner-cta">
+            Click to donate →
+        </div>
+    </div>
     <div class="container">
         <div class="header">
             <h1>🚀 MURF Token Dashboard</h1>
@@ -1778,6 +1900,63 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Floating Banner Functions
+        function scrollToDonation() {
+            const donationSection = document.querySelector('.donation-section');
+            if (donationSection) {
+                donationSection.scrollIntoView({ behavior: 'smooth' });
+                // Add a gentle highlight effect
+                donationSection.style.animation = 'gentleGlow 2s ease-out';
+                setTimeout(() => {
+                    donationSection.style.animation = '';
+                }, 2000);
+            }
+        }
+        
+        function closeBanner() {
+            const banner = document.getElementById('donationBanner');
+            if (banner) {
+                banner.style.animation = 'slideOutRight 0.5s ease-in forwards';
+                setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 500);
+                // Remember user closed it (optional - could use localStorage)
+                localStorage.setItem('donationBannerClosed', 'true');
+            }
+        }
+        
+        // Check if user previously closed banner
+        document.addEventListener('DOMContentLoaded', function() {
+            const bannerClosed = localStorage.getItem('donationBannerClosed');
+            if (bannerClosed === 'true') {
+                const banner = document.getElementById('donationBanner');
+                if (banner) {
+                    banner.style.display = 'none';
+                }
+            }
+        });
+        
+        // Add gentle glow animation for donation section
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes gentleGlow {
+                0% { box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3); }
+                50% { box-shadow: 0 12px 35px rgba(255, 136, 109, 0.6); }
+                100% { box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3); }
+            }
+            
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
         // Chart data from server
         const chartData = {json.dumps(stats.get('chart_data', {}))};
         
