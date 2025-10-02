@@ -1901,60 +1901,60 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Floating Banner Functions
-        function scrollToDonation() {
+        function scrollToDonation() {{
             const donationSection = document.querySelector('.donation-section');
-            if (donationSection) {
-                donationSection.scrollIntoView({ behavior: 'smooth' });
+            if (donationSection) {{
+                donationSection.scrollIntoView({{ behavior: 'smooth' }});
                 // Add a gentle highlight effect
                 donationSection.style.animation = 'gentleGlow 2s ease-out';
-                setTimeout(() => {
+                setTimeout(() => {{
                     donationSection.style.animation = '';
-                }, 2000);
-            }
-        }
+                }}, 2000);
+            }}
+        }}
         
-        function closeBanner() {
+        function closeBanner() {{
             const banner = document.getElementById('donationBanner');
-            if (banner) {
+            if (banner) {{
                 banner.style.animation = 'slideOutRight 0.5s ease-in forwards';
-                setTimeout(() => {
+                setTimeout(() => {{
                     banner.style.display = 'none';
-                }, 500);
+                }}, 500);
                 // Remember user closed it (optional - could use localStorage)
                 localStorage.setItem('donationBannerClosed', 'true');
-            }
-        }
+            }}
+        }}
         
         // Check if user previously closed banner
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {{
             const bannerClosed = localStorage.getItem('donationBannerClosed');
-            if (bannerClosed === 'true') {
+            if (bannerClosed === 'true') {{
                 const banner = document.getElementById('donationBanner');
-                if (banner) {
+                if (banner) {{
                     banner.style.display = 'none';
-                }
-            }
-        });
+                }}
+            }}
+        }});
         
         // Add gentle glow animation for donation section
         const style = document.createElement('style');
         style.textContent = `
-            @keyframes gentleGlow {
-                0% { box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3); }
-                50% { box-shadow: 0 12px 35px rgba(255, 136, 109, 0.6); }
-                100% { box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3); }
-            }
+            @keyframes gentleGlow {{
+                0% {{ box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3); }}
+                50% {{ box-shadow: 0 12px 35px rgba(255, 136, 109, 0.6); }}
+                100% {{ box-shadow: 0 8px 25px rgba(255, 136, 109, 0.3); }}
+            }}
             
-            @keyframes slideOutRight {
-                from {
+            @keyframes slideOutRight {{
+                from {{
                     transform: translateX(0);
                     opacity: 1;
-                }
-                to {
+                }}
+                to {{
                     transform: translateX(100%);
                     opacity: 0;
-                }
-            }
+                }}
+            }}
         `;
         document.head.appendChild(style);
         // Chart data from server
