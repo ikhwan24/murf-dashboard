@@ -2267,9 +2267,9 @@ def main():
     print("[WARNING]  WARNING: Prices are estimates, not live trading prices")
     print("Press Ctrl+C to stop")
     
-    # Start background holders refresh (DISABLED for faster startup)
+    # Start background holders refresh
     client = RealLiveAPIClient()
-    # client.smart_holders.start_background_refresh()
+    client.smart_holders.start_background_refresh()
     
     with socketserver.TCPServer(("0.0.0.0", PORT), RealLiveDashboardHandler) as httpd:
         print(f"[OK] Server running on port {PORT}")
