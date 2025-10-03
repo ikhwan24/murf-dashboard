@@ -2089,24 +2089,48 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 options: {{
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {{
-                        legend: {{
-                            display: false
-                        }}
+                plugins: {{
+                    legend: {{
+                        display: false
                     }},
+                    tooltip: {{
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: color,
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        displayColors: false,
+                        callbacks: {{
+                            title: function(context) {{
+                                return label + ': $' + context[0].parsed.y.toFixed(8);
+                            }},
+                            label: function(context) {{
+                                return 'Time: ' + context.label;
+                            }}
+                        }}
+                    }}
+                }},
                     scales: {{
                         x: {{
                             display: false
                         }},
-                        y: {{
-                            display: true,
-                            grid: {{
-                                color: '#333'
-                            }},
-                            ticks: {{
-                                color: '#888'
+                    y: {{
+                        display: true,
+                        grid: {{
+                            color: '#333'
+                        }},
+                        ticks: {{
+                            color: '#888',
+                            callback: function(value) {{
+                                if (value >= 0.000001) {{
+                                    return '$' + value.toFixed(8);
+                                }} else {{
+                                    return '$' + value.toFixed(10);
+                                }}
                             }}
                         }}
+                    }}
                     }},
                     interaction: {{
                         intersect: false,
