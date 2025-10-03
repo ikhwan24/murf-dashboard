@@ -142,7 +142,7 @@ class RealLiveAPIClient:
                         if is_kta_seller:
                             # Pattern 1: KTA -> MURF (Type 7 KTA + Type 0 MURF)
                             kta_amount = self.hex_to_decimal(op.get('amount', '0x0')) / 1e18
-                            print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
+                            print(f"✅ Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
                             
                             # Look for Type 0 MURF
                             murf_amount = 0
@@ -153,14 +153,14 @@ class RealLiveAPIClient:
                                     murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
                                     murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
                                     to_addr = related_op.get('to', 'N/A')
-                                    print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
+                                    print(f"   ✅ Found Type 0 MURF: {murf_amount:.0f} MURF")
                                     break
                         
                         elif is_murf_seller:
                             # Pattern 2: MURF -> KTA (Type 7 MURF + Type 0 KTA)
                             murf_amount_raw = self.hex_to_decimal(op.get('amount', '0x0'))
                             murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
-                            print(f"[OK] Found Type 7 MURF: {block.get('$hash', 'N/A')[:20]}... MURF: {murf_amount:.0f}")
+                            print(f"✅ Found Type 7 MURF: {block.get('$hash', 'N/A')[:20]}... MURF: {murf_amount:.0f}")
                             
                             # Look for Type 0 KTA
                             kta_amount = 0
@@ -170,7 +170,7 @@ class RealLiveAPIClient:
                                     related_op.get('token') == kta_token):
                                     kta_amount = self.hex_to_decimal(related_op.get('amount', '0x0')) / 1e18
                                     to_addr = related_op.get('to', 'N/A')
-                                    print(f"   [OK] Found Type 0 KTA: {kta_amount:.2f} KTA")
+                                    print(f"   ✅ Found Type 0 KTA: {kta_amount:.2f} KTA")
                                     break
                         
                         # Jika tidak ada dalam block yang sama, cari di block sebelumnya
@@ -316,7 +316,7 @@ class RealLiveAPIClient:
                 keeta_data = self.fetch_keeta_data()
                 if keeta_data:
                     analysis = self.analyze_keeta_data(keeta_data)
-                    print("[OK] API data fetched successfully")
+                    print("✅ API data fetched successfully")
                 else:
                     print("[WARNING] API data fetch failed, using database fallback")
             except Exception as api_error:
@@ -484,7 +484,7 @@ class RealLiveAPIClient:
                 "type_7_txs": type_7_txs,  # Add this for compatibility
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
-                "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected",
+                "api_status": "✅ Connected" if keeta_data else "[ERROR] Disconnected",
                 "top_holders": top_holders,
                 "holders_count": holder_stats.get('total_holders', 0) if holder_stats else 0,
                 "holders_circulation": holder_stats.get('total_circulation', 0) if holder_stats else 0,
@@ -1770,7 +1770,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         </div>
         
         <div class="warning-box">
-            <strong>[OK] Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
+            <strong>✅ Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
             MURF price is calculated based on the live KTA price and OTC exchange rate. 
             Blockchain data is real-time from Keeta Network API.
             
@@ -2237,7 +2237,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 // Show success message
                 const copyBtn = document.querySelector('.copy-btn');
                 const originalText = copyBtn.textContent;
-                copyBtn.textContent = '[OK] Copied!';
+                copyBtn.textContent = '✅ Copied!';
                 copyBtn.style.background = '#00b894';
                 
                 setTimeout(function() {{
@@ -2564,7 +2564,7 @@ def main():
     client.smart_holders.start_background_refresh()
     
     with socketserver.TCPServer(("0.0.0.0", PORT), RealLiveDashboardHandler) as httpd:
-        print(f"[OK] Server running on port {PORT}")
+        print(f"✅ Server running on port {PORT}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
