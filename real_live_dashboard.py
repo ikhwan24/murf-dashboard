@@ -1512,6 +1512,37 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             align-items: center;
         }}
         
+        .chart-type-selector {{
+            display: flex;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 4px;
+            margin-right: 15px;
+        }}
+        
+        .chart-type-btn {{
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }}
+        
+        .chart-type-btn:hover {{
+            color: #fff;
+            background: #333;
+        }}
+        
+        .chart-type-btn.active {{
+            background: #00d4aa;
+            color: #000;
+            font-weight: 600;
+        }}
+        
         .timeframe-selector {{
             display: flex;
             background: #2a2a2a;
@@ -1733,6 +1764,10 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="chart-header">
                     <div class="chart-title">[CHART] MURF Price: ${stats.get('murf_usd_price', 0):.8f} (+2.45%)</div>
                     <div class="chart-controls">
+                        <div class="chart-type-selector">
+                            <button class="chart-type-btn active" data-chart="murf-usd">MURF-USD</button>
+                            <button class="chart-type-btn" data-chart="murf-kta">MURF-KTA</button>
+                        </div>
                         <div class="timeframe-selector">
                             <button class="timeframe-btn active" data-timeframe="1h">1H</button>
                             <button class="timeframe-btn" data-timeframe="4h">4H</button>
@@ -1963,113 +1998,27 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         // Debug: Log chart data
         console.log('Chart Data:', chartData);
         console.log('MURF Prices:', chartData.murf_prices);
+        
+        // Chart type switching
+        let currentChartType = 'murf-usd';
         console.log('Labels:', chartData.labels);
         
-        // DexScreener style chart
-        const ctx = document.getElementById('priceChart').getContext('2d');
+        // Initialize chart with MURF-USD data by default
+        updateChartWithData(chartData.labels, chartData.murf_prices, 'MURF Price (USD)', '#00d4aa');
         
-        // Create gradient for area fill
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(0, 123, 255, 0.3)');
-        gradient.addColorStop(1, 'rgba(0, 123, 255, 0.05)');
-        
-        const priceChart = new Chart(ctx, {{
-            type: 'line',
-            data: {{
-                labels: chartData.labels || [],
-                datasets: [
-                    {{
-                        label: 'MURF Price',
-                        data: chartData.murf_prices || [],
-                        borderColor: '#00d4aa',
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#00d4aa',
-                        pointHoverBorderColor: '#ffffff',
-                        pointHoverBorderWidth: 2
-                    }}
-                ]
-            }},
-            options: {{
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {{
-                    intersect: false,
-                    mode: 'index'
-                }},
-                plugins: {{
-                    legend: {{
-                        display: false
-                    }},
-                    tooltip: {{
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#ffffff',
-                        bodyColor: '#ffffff',
-                        borderColor: '#00d4aa',
-                        borderWidth: 1,
-                        cornerRadius: 8,
-                        displayColors: false,
-                        callbacks: {{
-                            title: function(context) {{
-                                return 'MURF Price: $' + context[0].parsed.y.toFixed(8);
-                            }},
-                            label: function(context) {{
-                                return 'Time: ' + context.label;
-                            }}
-                        }}
-                    }}
-                }},
-                scales: {{
-                    x: {{
-                        display: true,
-                        grid: {{
-                            display: false
-                        }},
-                        ticks: {{
-                            color: '#666',
-                            font: {{
-                                size: 11
-                            }}
-                        }},
-                        border: {{
-                            display: false
-                        }}
-                    }},
-                    y: {{
-                        display: true,
-                        position: 'right',
-                        grid: {{
-                            color: 'rgba(255, 255, 255, 0.1)',
-                            drawBorder: false
-                        }},
-                        ticks: {{
-                            color: '#666',
-                            font: {{
-                                size: 11
-                            }},
-                            callback: function(value) {{
-                                return '$' + value.toFixed(8);
-                            }}
-                        }},
-                        border: {{
-                            display: false
-                        }}
-                    }}
-                }},
-                elements: {{
-                    line: {{
-                        borderCapStyle: 'round'
-                    }}
-                }}
-            }}
+        // Chart type selector functionality
+        document.querySelectorAll('.chart-type-btn').forEach(btn => {{
+            btn.addEventListener('click', function() {{
+                document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const chartType = this.getAttribute('data-chart');
+                currentChartType = chartType;
+                updateChartType(chartType);
+            }});
         }});
         
         // Timeframe selector functionality
-        // Timeframe switching functionality
         document.querySelectorAll('.timeframe-btn').forEach(btn => {{
             btn.addEventListener('click', function() {{
                 document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
@@ -2079,6 +2028,84 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 updateChartTimeframe(timeframe);
             }});
         }});
+        
+        function updateChartType(chartType) {{
+            console.log('Switching to chart type:', chartType);
+            
+            // Update chart title
+            const chartTitle = document.querySelector('.chart-title');
+            if (chartType === 'murf-usd') {{
+                chartTitle.textContent = '[CHART] MURF Price: $' + {stats.get('murf_usd_price', 0):.8f} + ' (+2.45%)';
+            }} else if (chartType === 'murf-kta') {{
+                chartTitle.textContent = '[CHART] MURF-KTA Rate: ' + {stats.get('murf_kta_price', 0):.8f} + ' MURF per KTA';
+            }}
+            
+            // Update chart data based on type
+            if (chartType === 'murf-usd') {{
+                // Show MURF-USD chart
+                updateChartWithData(chartData.labels, chartData.murf_prices, 'MURF Price (USD)', '#00d4aa');
+            }} else if (chartType === 'murf-kta') {{
+                // Show MURF-KTA chart
+                updateChartWithData(chartData.labels, chartData.murf_kta_prices || chartData.murf_prices, 'MURF per KTA', '#ff6b6b');
+            }}
+        }}
+        
+        function updateChartWithData(labels, data, label, color) {{
+            // Clear existing chart
+            const chartContainer = document.querySelector('.chart-container');
+            chartContainer.innerHTML = '<canvas id="priceChart" width="400" height="150"></canvas>';
+            
+            // Create new chart
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            new Chart(ctx, {{
+                type: 'line',
+                data: {{
+                    labels: labels,
+                    datasets: [{{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }}]
+                }},
+                options: {{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {{
+                        legend: {{
+                            display: false
+                        }}
+                    }},
+                    scales: {{
+                        x: {{
+                            display: false
+                        }},
+                        y: {{
+                            display: true,
+                            grid: {{
+                                color: '#333'
+                            }},
+                            ticks: {{
+                                color: '#888'
+                            }}
+                        }}
+                    }},
+                    interaction: {{
+                        intersect: false,
+                        mode: 'index'
+                    }},
+                    elements: {{
+                        point: {{
+                            radius: 0,
+                            hoverRadius: 6
+                        }}
+                    }}
+                }}
+            }});
+        }}
         
         function updateChartTimeframe(timeframe) {{
             // For now, show message that data is not available
