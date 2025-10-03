@@ -1777,7 +1777,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             <!-- Compact Price Chart inside warning box -->
             <div class="compact-chart">
                 <div class="chart-header">
-                    <div class="chart-title">[CHART] MURF-KTA Rate: ${stats.get('murf_kta_price', 0):.8f} KTA per MURF</div>
+                    <div class="chart-title">📊 MURF-KTA Rate: ${stats.get('murf_kta_price', 0):.8f} KTA per MURF</div>
                     <div class="chart-controls">
                 <div class="chart-type-selector">
                     <button class="chart-type-btn" data-chart="murf-usd">MURF-USD</button>
@@ -1801,7 +1801,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         <!-- Latest OTC Transactions -->
         <div class="latest-otc-section">
             <div class="otc-header">
-                <h3>[REFRESH] Latest OTC Transactions</h3>
+                <h3>🔄 Latest OTC Transactions</h3>
                 <p>Recent MURF/KTA OTC trades from Keeta Network</p>
             </div>
             <div class="otc-transactions">
@@ -2050,9 +2050,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             // Update chart title
             const chartTitle = document.querySelector('.chart-title');
             if (chartType === 'murf-usd') {{
-                chartTitle.textContent = '[CHART] MURF Price: $' + {stats.get('murf_usd_price', 0):.8f} + ' (+2.45%)';
+                chartTitle.textContent = '📊 MURF Price: $' + {stats.get('murf_usd_price', 0):.8f} + ' (+2.45%)';
             }} else if (chartType === 'murf-kta') {{
-                chartTitle.textContent = '[CHART] MURF-KTA Rate: ' + {stats.get('murf_kta_price', 0):.8f} + ' KTA per MURF';
+                chartTitle.textContent = '📊 MURF-KTA Rate: ' + {stats.get('murf_kta_price', 0):.8f} + ' KTA per MURF';
             }}
             
             // Update chart data based on type
@@ -2276,7 +2276,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         <div class="footer-content">
             <p>🚀 MURF Token Dashboard - Real-time OTC Trading Analytics</p>
             <div class="footer-credit">
-                Made with [LOVE] by <a href="https://x.com/BigKingXBT" target="_blank">@BigKingXBT</a>
+                Made with ❤️ by <a href="https://x.com/BigKingXBT" target="_blank">@BigKingXBT</a>
             </div>
         </div>
     </footer>
