@@ -2103,7 +2103,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                         displayColors: false,
                         callbacks: {{
                             title: function(context) {{
-                                return label + ': $' + context[0].parsed.y.toFixed(8);
+                                if (currentChartType === 'murf-kta') {{
+                                    return label + ': ' + context[0].parsed.y.toFixed(2) + ' MURF';
+                                }} else {{
+                                    return label + ': $' + context[0].parsed.y.toFixed(8);
+                                }}
                             }},
                             label: function(context) {{
                                 return 'Time: ' + context.label;
@@ -2123,10 +2127,22 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                         ticks: {{
                             color: '#888',
                             callback: function(value) {{
-                                if (value >= 0.000001) {{
-                                    return '$' + value.toFixed(8);
+                                if (currentChartType === 'murf-kta') {{
+                                    // For MURF-KTA chart, show exchange rate without $ symbol
+                                    if (value >= 1000) {{
+                                        return value.toFixed(0) + ' MURF';
+                                    }} else if (value >= 1) {{
+                                        return value.toFixed(2) + ' MURF';
+                                    }} else {{
+                                        return value.toFixed(6) + ' MURF';
+                                    }}
                                 }} else {{
-                                    return '$' + value.toFixed(10);
+                                    // For MURF-USD chart, show USD price
+                                    if (value >= 0.000001) {{
+                                        return '$' + value.toFixed(8);
+                                    }} else {{
+                                        return '$' + value.toFixed(10);
+                                    }}
                                 }}
                             }}
                         }}
