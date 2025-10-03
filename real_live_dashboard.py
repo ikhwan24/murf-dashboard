@@ -69,6 +69,23 @@ class RealLiveAPIClient:
         except:
             return 0
     
+    def format_number(self, number, decimals=2):
+        """Format large numbers with suffixes (K, M, B)"""
+        if number == 0:
+            return "0"
+        
+        abs_number = abs(number)
+        sign = "-" if number < 0 else ""
+        
+        if abs_number >= 1e9:
+            return f"{sign}{abs_number/1e9:.{decimals}f}B"
+        elif abs_number >= 1e6:
+            return f"{sign}{abs_number/1e6:.{decimals}f}M"
+        elif abs_number >= 1e3:
+            return f"{sign}{abs_number/1e3:.{decimals}f}K"
+        else:
+            return f"{sign}{abs_number:.{decimals}f}"
+    
     def fetch_keeta_data(self, limit=100):
         """Fetch data from Keeta API (API max limit is 200 entries)"""
         try:
@@ -1437,6 +1454,37 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             color: #666;
         }}
         
+        .quick-input-buttons {{
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }}
+        
+        .quick-btn {{
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 40px;
+        }}
+        
+        .quick-btn:hover {{
+            background: #00d4aa;
+            border-color: #00d4aa;
+            color: #000000;
+            transform: translateY(-1px);
+        }}
+        
+        .quick-btn:active {{
+            transform: translateY(0);
+        }}
+        
         .converter-results {{
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1833,6 +1881,13 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 <div class="converter-input">
                     <label for="murfAmount">MURF Amount:</label>
                     <input type="number" id="murfAmount" placeholder="Enter MURF amount" min="0" step="0.01">
+                    <div class="quick-input-buttons">
+                        <button class="quick-btn" onclick="setMURFAmount(1000000)">1M</button>
+                        <button class="quick-btn" onclick="setMURFAmount(10000000)">10M</button>
+                        <button class="quick-btn" onclick="setMURFAmount(100000000)">100M</button>
+                        <button class="quick-btn" onclick="setMURFAmount(1000000000)">1B</button>
+                        <button class="quick-btn" onclick="setMURFAmount(10000000000)">10B</button>
+                    </div>
                 </div>
                 <div class="converter-results">
                     <div class="result-card">
@@ -1858,7 +1913,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             
             <div class="stat-card">
                 <div class="stat-label">MURF Circulation</div>
-                <div class="stat-value">{stats['murf_circulation']:,.0f}</div>
+                <div class="stat-value">{self.format_number(stats['murf_circulation'], 0)}</div>
                 <div class="stat-sub">60 Billion MURF</div>
             </div>
             
@@ -1870,7 +1925,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             
             <div class="stat-card">
                 <div class="stat-label">Exchange Rate</div>
-                <div class="stat-value">1 KTA = {stats['exchange_rate_murf']:,.0f} MURF</div>
+                <div class="stat-value">1 KTA = {self.format_number(stats['exchange_rate_murf'], 0)} MURF</div>
                 <div class="stat-sub">OTC Exchange Rate</div>
             </div>
             
@@ -1888,13 +1943,13 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             
             <div class="stat-card">
                 <div class="stat-label">MURF FDV (USD)</div>
-                <div class="stat-value">${stats['murf_fdv']:,.0f}</div>
+                <div class="stat-value">${self.format_number(stats['murf_fdv'], 0)}</div>
                 <div class="stat-sub">Fully Diluted Valuation</div>
             </div>
             
             <div class="stat-card">
                 <div class="stat-label">MURF Market Cap</div>
-                <div class="stat-value">${stats['murf_marketcap']:,.0f}</div>
+                <div class="stat-value">${self.format_number(stats['murf_marketcap'], 0)}</div>
                 <div class="stat-sub">Circulating Market Cap</div>
             </div>
             
@@ -2230,6 +2285,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         // Add event listener for real-time conversion
         murfInput.addEventListener('input', updateConverter);
         
+        // Quick input function for MURF amounts
+        function setMURFAmount(amount) {{
+            murfInput.value = amount;
+            updateConverter();
+        }}
+        
         // Copy CA function
         function copyCA() {{
             const caAddress = 'keeta_ao7nitutebhm2pkrfbtniepivaw324hecyb43wsxts5rrhi2p5ckgof37racm';
@@ -2431,12 +2492,16 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             from_short = from_addr[:6] + '...' + from_addr[-6:] if len(from_addr) > 12 else from_addr
             to_short = to_addr[:6] + '...' + to_addr[-6:] if len(to_addr) > 12 else to_addr
             
-            # Format amounts
-            kta_formatted = f"{kta_amount:.2f}" if kta_amount > 0 else "0.00"
-            murf_formatted = f"{murf_amount:,.0f}" if murf_amount > 0 else "0"
+            # Format amounts with suffixes
+            kta_formatted = self.format_number(kta_amount, 2) if kta_amount > 0 else "0"
+            murf_formatted = self.format_number(murf_amount, 0) if murf_amount > 0 else "0"
             
-            # Calculate exchange rate
-            rate_text = f"1 KTA = {exchange_rate:,.0f} MURF" if exchange_rate > 0 else "Rate: N/A"
+            # Calculate exchange rate with formatting
+            if exchange_rate > 0:
+                rate_formatted = self.format_number(exchange_rate, 0)
+                rate_text = f"1 KTA = {rate_formatted} MURF"
+            else:
+                rate_text = "Rate: N/A"
             
             # Format date with relative time
             try:
@@ -2507,13 +2572,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             rank = holder.get('rank', 0)
             tx_count = holder.get('tx_count', 0)
             
-            # Format balance
-            if balance > 1000000:
-                balance_str = f"{balance/1000000:.2f}M MURF"
-            elif balance > 1000:
-                balance_str = f"{balance/1000:.2f}K MURF"
-            else:
-                balance_str = f"{balance:,.0f} MURF"
+            # Format balance with suffixes
+            balance_str = f"{self.format_number(balance, 0)} MURF"
             
             # Create explorer link
             explorer_link = f"https://explorer.keeta.com/account/{address}"
