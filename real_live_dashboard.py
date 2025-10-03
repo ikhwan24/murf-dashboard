@@ -1777,12 +1777,12 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             <!-- Compact Price Chart inside warning box -->
             <div class="compact-chart">
                 <div class="chart-header">
-                    <div class="chart-title">[CHART] MURF Price: ${stats.get('murf_usd_price', 0):.8f} (+2.45%)</div>
+                    <div class="chart-title">[CHART] MURF-KTA Rate: ${stats.get('murf_kta_price', 0):.8f} KTA per MURF</div>
                     <div class="chart-controls">
-                        <div class="chart-type-selector">
-                            <button class="chart-type-btn active" data-chart="murf-usd">MURF-USD</button>
-                            <button class="chart-type-btn" data-chart="murf-kta">MURF-KTA</button>
-                        </div>
+                <div class="chart-type-selector">
+                    <button class="chart-type-btn" data-chart="murf-usd">MURF-USD</button>
+                    <button class="chart-type-btn active" data-chart="murf-kta">MURF-KTA</button>
+                </div>
                         <div class="timeframe-selector">
                             <button class="timeframe-btn active" data-timeframe="1h">1H</button>
                             <button class="timeframe-btn" data-timeframe="4h">4H</button>
@@ -2015,11 +2015,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         console.log('MURF Prices:', chartData.murf_prices);
         
         // Chart type switching
-        let currentChartType = 'murf-usd';
+        let currentChartType = 'murf-kta';
         console.log('Labels:', chartData.labels);
         
-        // Initialize chart with MURF-USD data by default
-        updateChartWithData(chartData.labels, chartData.murf_prices, 'MURF Price (USD)', '#00d4aa');
+        // Initialize chart with MURF-KTA data by default
+        updateChartWithData(chartData.labels, chartData.murf_kta_prices || chartData.murf_prices, 'KTA per MURF', '#ff6b6b');
         
         // Chart type selector functionality
         document.querySelectorAll('.chart-type-btn').forEach(btn => {{
