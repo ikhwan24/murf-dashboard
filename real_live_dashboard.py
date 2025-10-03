@@ -1498,6 +1498,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             padding: 20px 24px;
             border-bottom: 1px solid #333;
             background: #1a1a1a;
+            position: relative;
+            z-index: 5;
         }}
         
         .chart-title {{
@@ -1510,6 +1512,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         .chart-controls {{
             display: flex;
             align-items: center;
+            position: relative;
+            z-index: 10;
         }}
         
         .chart-type-selector {{
@@ -1518,6 +1522,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             border-radius: 8px;
             padding: 4px;
             margin-right: 15px;
+            position: relative;
+            z-index: 15;
         }}
         
         .chart-type-btn {{
@@ -1530,6 +1536,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-size: 12px;
             font-weight: 500;
             transition: all 0.2s ease;
+            position: relative;
+            z-index: 20;
+            pointer-events: auto;
         }}
         
         .chart-type-btn:hover {{
@@ -1548,6 +1557,8 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             background: #2a2a2a;
             border-radius: 8px;
             padding: 4px;
+            position: relative;
+            z-index: 15;
         }}
         
         .timeframe-btn {{
@@ -1560,6 +1571,9 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             font-size: 12px;
             font-weight: 500;
             transition: all 0.2s ease;
+            position: relative;
+            z-index: 20;
+            pointer-events: auto;
         }}
         
         .timeframe-btn:hover {{
@@ -1674,6 +1688,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             background: #FFFFFF;
             border: 2px solid #0BAA1B;
             border-radius: 12px;
+            z-index: 1;
         }}
         
         .chart-footer {{
