@@ -110,6 +110,7 @@ class PriceHistoryDB:
         labels = []
         kta_prices = []
         murf_prices = []
+        murf_kta_prices = []  # Add MURF-KTA exchange rates
         market_caps = []
         
         for entry in history:
@@ -119,12 +120,22 @@ class PriceHistoryDB:
             
             kta_prices.append(round(entry['kta_price_usd'], 4))
             murf_prices.append(round(entry['murf_usd_price'], 8))
+            # Add MURF-KTA exchange rate (MURF per KTA)
+            if entry.get('exchange_rate_murf', 0) > 0:
+                murf_kta_prices.append(round(entry['exchange_rate_murf'], 2))
+            else:
+                # Calculate from murf_kta_price if exchange_rate_murf not available
+                if entry.get('murf_kta_price', 0) > 0:
+                    murf_kta_prices.append(round(1 / entry['murf_kta_price'], 2))
+                else:
+                    murf_kta_prices.append(0)
             market_caps.append(round(entry['murf_marketcap'], 0))
         
         return {
             'labels': labels,
             'kta_prices': kta_prices,
             'murf_prices': murf_prices,
+            'murf_kta_prices': murf_kta_prices,  # Add MURF-KTA exchange rates
             'market_caps': market_caps,
             'count': len(history)
         }
