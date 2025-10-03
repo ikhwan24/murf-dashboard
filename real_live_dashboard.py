@@ -2052,7 +2052,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
             if (chartType === 'murf-usd') {{
                 chartTitle.textContent = '[CHART] MURF Price: $' + {stats.get('murf_usd_price', 0):.8f} + ' (+2.45%)';
             }} else if (chartType === 'murf-kta') {{
-                chartTitle.textContent = '[CHART] MURF-KTA Rate: ' + {stats.get('murf_kta_price', 0):.8f} + ' MURF per KTA';
+                chartTitle.textContent = '[CHART] MURF-KTA Rate: ' + {stats.get('murf_kta_price', 0):.8f} + ' KTA per MURF';
             }}
             
             // Update chart data based on type
@@ -2061,7 +2061,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 updateChartWithData(chartData.labels, chartData.murf_prices, 'MURF Price (USD)', '#00d4aa');
             }} else if (chartType === 'murf-kta') {{
                 // Show MURF-KTA chart
-                updateChartWithData(chartData.labels, chartData.murf_kta_prices || chartData.murf_prices, 'MURF per KTA', '#ff6b6b');
+                updateChartWithData(chartData.labels, chartData.murf_kta_prices || chartData.murf_prices, 'KTA per MURF', '#ff6b6b');
             }}
         }}
         
@@ -2104,7 +2104,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                         callbacks: {{
                             title: function(context) {{
                                 if (currentChartType === 'murf-kta') {{
-                                    return label + ': ' + context[0].parsed.y.toFixed(2) + ' MURF';
+                                    return label + ': ' + context[0].parsed.y.toFixed(8) + ' KTA';
                                 }} else {{
                                     return label + ': $' + context[0].parsed.y.toFixed(8);
                                 }}
@@ -2128,13 +2128,11 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                             color: '#888',
                             callback: function(value) {{
                                 if (currentChartType === 'murf-kta') {{
-                                    // For MURF-KTA chart, show exchange rate without $ symbol
-                                    if (value >= 1000) {{
-                                        return value.toFixed(0) + ' MURF';
-                                    }} else if (value >= 1) {{
-                                        return value.toFixed(2) + ' MURF';
+                                    // For MURF-KTA chart, show KTA per MURF (small decimal values)
+                                    if (value >= 0.000001) {{
+                                        return value.toFixed(8) + ' KTA';
                                     }} else {{
-                                        return value.toFixed(6) + ' MURF';
+                                        return value.toFixed(10) + ' KTA';
                                     }}
                                 }} else {{
                                     // For MURF-USD chart, show USD price
