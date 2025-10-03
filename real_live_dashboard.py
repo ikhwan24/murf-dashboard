@@ -159,7 +159,7 @@ class RealLiveAPIClient:
                         if is_kta_seller:
                             # Pattern 1: KTA -> MURF (Type 7 KTA + Type 0 MURF)
                             kta_amount = self.hex_to_decimal(op.get('amount', '0x0')) / 1e18
-                            print(f"✅ Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
+                            print(f"[OK] Found Type 7 KTA: {block.get('$hash', 'N/A')[:20]}... KTA: {kta_amount:.2f}")
                             
                             # Look for Type 0 MURF
                             murf_amount = 0
@@ -170,14 +170,14 @@ class RealLiveAPIClient:
                                     murf_amount_raw = self.hex_to_decimal(related_op.get('amount', '0x0'))
                                     murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
                                     to_addr = related_op.get('to', 'N/A')
-                                    print(f"   ✅ Found Type 0 MURF: {murf_amount:.0f} MURF")
+                                    print(f"   [OK] Found Type 0 MURF: {murf_amount:.0f} MURF")
                                     break
                         
                         elif is_murf_seller:
                             # Pattern 2: MURF -> KTA (Type 7 MURF + Type 0 KTA)
                             murf_amount_raw = self.hex_to_decimal(op.get('amount', '0x0'))
                             murf_amount = murf_amount_raw  # TIDAK dibagi 1e18 untuk MURF
-                            print(f"✅ Found Type 7 MURF: {block.get('$hash', 'N/A')[:20]}... MURF: {murf_amount:.0f}")
+                            print(f"[OK] Found Type 7 MURF: {block.get('$hash', 'N/A')[:20]}... MURF: {murf_amount:.0f}")
                             
                             # Look for Type 0 KTA
                             kta_amount = 0
@@ -187,7 +187,7 @@ class RealLiveAPIClient:
                                     related_op.get('token') == kta_token):
                                     kta_amount = self.hex_to_decimal(related_op.get('amount', '0x0')) / 1e18
                                     to_addr = related_op.get('to', 'N/A')
-                                    print(f"   ✅ Found Type 0 KTA: {kta_amount:.2f} KTA")
+                                    print(f"   [OK] Found Type 0 KTA: {kta_amount:.2f} KTA")
                                     break
                         
                         # Jika tidak ada dalam block yang sama, cari di block sebelumnya
@@ -333,7 +333,7 @@ class RealLiveAPIClient:
                 keeta_data = self.fetch_keeta_data()
                 if keeta_data:
                     analysis = self.analyze_keeta_data(keeta_data)
-                    print("✅ API data fetched successfully")
+                    print("[OK] API data fetched successfully")
                 else:
                     print("[WARNING] API data fetch failed, using database fallback")
             except Exception as api_error:
@@ -501,7 +501,7 @@ class RealLiveAPIClient:
                 "type_7_txs": type_7_txs,  # Add this for compatibility
                 "chart_data": chart_data,
                 "data_source": "Keeta Network API (Live)",
-                "api_status": "✅ Connected" if keeta_data else "[ERROR] Disconnected",
+                "api_status": "[OK] Connected" if keeta_data else "[ERROR] Disconnected",
                 "top_holders": top_holders,
                 "holders_count": holder_stats.get('total_holders', 0) if holder_stats else 0,
                 "holders_circulation": holder_stats.get('total_circulation', 0) if holder_stats else 0,
@@ -555,6 +555,23 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.api_client = RealLiveAPIClient()
         super().__init__(*args, **kwargs)
+    
+    def format_number(self, number, decimals=2):
+        """Format large numbers with suffixes (K, M, B)"""
+        if number == 0:
+            return "0"
+        
+        abs_number = abs(number)
+        sign = "-" if number < 0 else ""
+        
+        if abs_number >= 1e9:
+            return f"{sign}{abs_number/1e9:.{decimals}f}B"
+        elif abs_number >= 1e6:
+            return f"{sign}{abs_number/1e6:.{decimals}f}M"
+        elif abs_number >= 1e3:
+            return f"{sign}{abs_number/1e3:.{decimals}f}K"
+        else:
+            return f"{sign}{abs_number:.{decimals}f}"
     
     def do_GET(self):
         if self.path == '/':
@@ -1818,7 +1835,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         </div>
         
         <div class="warning-box">
-            <strong>✅ Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
+            <strong>[OK] Live Data:</strong> KTA price is now fetched live from CoinGecko API. 
             MURF price is calculated based on the live KTA price and OTC exchange rate. 
             Blockchain data is real-time from Keeta Network API.
             
@@ -1907,14 +1924,14 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-label">MURF Total Supply</div>
-                <div class="stat-value">{stats['murf_total_supply']:,.0f}</div>
-                <div class="stat-sub">1 Trillion MURF</div>
+                <div class="stat-value">{self.format_number(stats['murf_total_supply'], 0)}</div>
+                <div class="stat-sub">1T MURF</div>
             </div>
             
             <div class="stat-card">
                 <div class="stat-label">MURF Circulation</div>
                 <div class="stat-value">{self.format_number(stats['murf_circulation'], 0)}</div>
-                <div class="stat-sub">60 Billion MURF</div>
+                <div class="stat-sub">60B MURF</div>
             </div>
             
             <div class="stat-card">
@@ -2298,7 +2315,7 @@ class RealLiveDashboardHandler(http.server.BaseHTTPRequestHandler):
                 // Show success message
                 const copyBtn = document.querySelector('.copy-btn');
                 const originalText = copyBtn.textContent;
-                copyBtn.textContent = '✅ Copied!';
+                copyBtn.textContent = '[OK] Copied!';
                 copyBtn.style.background = '#00b894';
                 
                 setTimeout(function() {{
@@ -2624,11 +2641,11 @@ def main():
     client.smart_holders.start_background_refresh()
     
     with socketserver.TCPServer(("0.0.0.0", PORT), RealLiveDashboardHandler) as httpd:
-        print(f"✅ Server running on port {PORT}")
+        print(f"[OK] Server running on port {PORT}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\n🛑 Server stopped")
+            print("\n[STOP] Server stopped")
 
 if __name__ == "__main__":
     main()
